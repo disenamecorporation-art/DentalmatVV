@@ -403,18 +403,6 @@ export default function App() {
             <div>
               &copy; {new Date().getFullYear()} DentalMatVV. Todos los derechos reservados.
             </div>
-            
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsAdminOpen(true)}
-                className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700"
-                title="Abrir panel de administración"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Panel Administrativo</span>
-              </button>
-            </div>
-
             <div className="flex items-center gap-1.5">
               <span>Desarrollo de Software y Diseño:</span>
               <strong className="text-slate-400 font-semibold">{siteContent.footer_credits || 'Hecho por Legaint Corporation'}</strong>
