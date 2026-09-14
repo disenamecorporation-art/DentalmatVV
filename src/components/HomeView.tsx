@@ -22,9 +22,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="w-full">
-      {/* SECTION 1: HERO SECTION - Exact layout representation from screenshot with full background image stretching behind fixed header */}
+      {/* SECTION 1: HERO SECTION - Background image extends to the top behind the super glass navigation menu */}
       <section 
-        className="relative w-full overflow-hidden bg-cover bg-center pt-36 pb-36 md:pt-48 md:pb-40"
+        className="relative w-full overflow-hidden bg-cover bg-top -mt-[84px] md:-mt-[96px] pt-32 md:pt-40 pb-28 md:pb-36"
         style={{ 
           backgroundImage: `url('https://i.postimg.cc/qB19BgCs/Chat-GPT-Image-5-sept-2026-08-48-59-p-m.png')`,
         }}
@@ -193,9 +193,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
           <div className="max-w-3xl space-y-6">
-            <span className="bg-blue-500/20 border border-blue-400/30 text-cyan-300 font-extrabold text-[11px] px-3.5 py-1.5 rounded-full uppercase tracking-widest">
-              CONTRATACIÓN CORPORATIVA & CLÍNICAS
-            </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
               ¿Equipando un nuevo consultorio dental?
             </h2>

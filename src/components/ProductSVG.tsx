@@ -6,6 +6,21 @@ interface ProductSVGProps {
 }
 
 export const ProductSVG: React.FC<ProductSVGProps> = ({ type, className = "w-full h-full" }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  // If the type is an image URL (http, data:, or containing common image indicators)
+  if (type && !imgError && (type.startsWith('http://') || type.startsWith('https://') || type.startsWith('data:') || type.startsWith('/') || type.includes('.png') || type.includes('.jpg') || type.includes('.webp') || type.includes('.jpeg') || type.includes('.svg') || type.includes('postimg'))) {
+    return (
+      <img
+        src={type}
+        alt="Producto Dental"
+        referrerPolicy="no-referrer"
+        onError={() => setImgError(true)}
+        className={`${className} object-contain max-h-full max-w-full drop-shadow-sm`}
+      />
+    );
+  }
+
   // Define premium SVG illustrations with clinical light blue, silver metal, and dark accents
   switch (type) {
     case 'turbina':

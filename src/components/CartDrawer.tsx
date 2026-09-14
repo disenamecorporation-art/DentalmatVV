@@ -2,6 +2,7 @@ import React from 'react';
 import { CartItem, Product } from '../types';
 import { X, Minus, Plus, ShoppingBag, Trash2, CheckCircle, ArrowRight } from 'lucide-react';
 import { ProductSVG } from './ProductSVG';
+import { getSupabase } from '../lib/supabase';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     return `$${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
   };
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Prepare payment method display name
@@ -59,6 +60,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }).join('\n');
 
     const totalAmountUsd = totalAmount / 1000;
+
+    // Optional: Save order to Supabase
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        await sb.from('orders').insert({
+          items: cartItems.map(item => ({
+            id: item.product.id,
+            name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+            brand: item.product.brand
+          })),
+          total: totalAmount,
+          customer_name: formData.name,
+          customer_phone: formData.phone,
+          customer_address: formData.address || 'No especificada',
+          notes: `Método de pago: ${payMethodName}. Email: ${formData.email || 'N/A'}`
+        });
+      } catch (err) {
+        console.warn('Error saving order to Supabase:', err);
+      }
+    }
 
     // Build gorgeous message
     const message = `🦷 *NUEVO PEDIDO - DENTALMATVV* 🦷\n\n` +

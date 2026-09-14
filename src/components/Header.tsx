@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActiveTab, CartItem } from '../types';
-import { Search, User, ShoppingCart, Percent, ShieldCheck, Truck, CreditCard, MessageSquare } from 'lucide-react';
+import { UserProfile } from '../lib/supabase';
+import { Search, User, ShoppingCart, Percent, ShieldCheck, Truck, CreditCard, MessageSquare, Database, Shield } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ActiveTab;
@@ -8,6 +9,8 @@ interface HeaderProps {
   cartItems: CartItem[];
   onToggleCart: () => void;
   onSearch?: (query: string) => void;
+  currentUser?: UserProfile | null;
+  onOpenAdmin?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -15,7 +18,9 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeTab,
   cartItems,
   onToggleCart,
-  onSearch
+  onSearch,
+  currentUser,
+  onOpenAdmin
 }) => {
   const [scrolled, setScrolled] = React.useState(false);
   const [showSearchBox, setShowSearchBox] = React.useState(false);
@@ -40,126 +45,102 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="w-full z-50 fixed top-0 left-0">
-      {/* Top bar with quick high-value points */}
-      <div 
-        className="w-full bg-white/30 border-b border-white/20 py-2.5 px-4 text-xs font-semibold text-[#0F2C59]"
-        style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
-      >
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-2 text-[11px] md:text-xs">
-            <Truck className="w-3.5 h-3.5 text-blue-600" />
-            <span>Envíos a todo el país</span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] md:text-xs">
-            <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-            <span>Atención rápida por WhatsApp</span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] md:text-xs">
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-            <span>Productos 100% originales</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main sticky navigation header */}
-      <div 
-        id="main-nav-bar"
-        className="w-full z-40 transition-all duration-300 bg-white/40 border-b border-white/35 py-2 md:py-3"
-        style={{ backdropFilter: 'blur(30px) saturate(140%)', WebkitBackdropFilter: 'blur(30px) saturate(140%)' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
+    <header className="w-full sticky top-0 z-50 bg-white/35 backdrop-blur-3xl border-b border-white/70 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_10px_35px_rgba(15,23,89,0.08)] transition-all duration-300">
+      
+      {/* Main Navigation Bar with Super Glass aesthetics */}
+      <div className={`max-w-7xl mx-auto px-4 md:px-8 transition-all duration-200 ${scrolled ? 'py-2' : 'py-3'}`}>
+        <div className="flex items-center justify-between gap-4">
           
-          {/* Logo container strictly crop/bounded per user instructions */}
+          {/* Main Logo Brand - Much bigger */}
           <div 
-            id="logo-brand"
-            className="h-16 md:h-22 flex items-center justify-center cursor-pointer select-none"
             onClick={() => onChangeTab('home')}
+            className="cursor-pointer flex items-center select-none py-1"
           >
             <img 
               src="https://i.postimg.cc/8kmZgcfh/dentalweblogo.png" 
               alt="DentalMatVV" 
               referrerPolicy="no-referrer"
-              className="h-full w-auto object-contain transition-all duration-200 hover:scale-[1.03]"
+              className="h-16 sm:h-20 md:h-22 lg:h-24 max-h-24 w-auto object-contain transition-all duration-200 hover:scale-[1.03]"
             />
           </div>
 
-          {/* Center Navigation Links matching screenshot */}
-          <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          {/* Center Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-7 text-sm font-semibold text-slate-700 bg-white/50 backdrop-blur-2xl px-6 py-2 rounded-full border border-white/80 shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_4px_24px_rgba(15,23,89,0.06)]">
             <button
               onClick={() => onChangeTab('home')}
-              className={`relative py-1.5 transition-colors cursor-pointer ${
+              className={`relative py-1 px-3 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'home' 
-                  ? 'text-blue-600 font-bold' 
-                  : 'hover:text-blue-500'
+                  ? 'text-blue-600 font-bold bg-white/80 border border-white/90 shadow-sm backdrop-blur-lg' 
+                  : 'hover:text-blue-600 hover:bg-white/60'
               }`}
             >
               Inicio
-              {activeTab === 'home' && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
-              )}
             </button>
             
             <button
               onClick={() => onChangeTab('tienda')}
-              className={`relative py-1.5 transition-colors cursor-pointer ${
+              className={`relative py-1 px-3 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'tienda' 
-                  ? 'text-blue-600 font-bold' 
-                  : 'hover:text-blue-500'
+                  ? 'text-blue-600 font-bold bg-white/80 border border-white/90 shadow-sm backdrop-blur-lg' 
+                  : 'hover:text-blue-600 hover:bg-white/60'
               }`}
             >
               Tienda
-              {activeTab === 'tienda' && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
-              )}
             </button>
 
             <button
               onClick={() => { onChangeTab('tienda'); onSearch?.('nsk'); }}
-              className="hover:text-blue-500 transition-colors text-slate-500 py-1.5 cursor-pointer"
+              className="hover:text-blue-600 hover:bg-white/60 transition-all text-slate-600 py-1 px-3 rounded-xl cursor-pointer"
             >
               Marcas
             </button>
 
             <button
               onClick={() => { onChangeTab('tienda'); onSearch?.('oferta'); }}
-              className="hover:text-blue-500 transition-colors text-slate-500 py-1.5 flex items-center gap-1 cursor-pointer"
+              className="hover:text-blue-600 hover:bg-white/60 transition-all text-slate-600 py-1 px-3 rounded-xl flex items-center gap-1.5 cursor-pointer"
             >
               <span>Ofertas</span>
-              <span className="bg-red-100 text-red-600 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full">
+              <span className="bg-red-500/10 border border-red-500/20 text-red-600 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
                 %
               </span>
             </button>
 
             <button
               onClick={() => { onChangeTab('tienda'); onSearch?.('Equipamiento'); }}
-              className="hover:text-blue-500 transition-colors text-slate-500 py-1.5 cursor-pointer"
+              className="hover:text-blue-600 hover:bg-white/60 transition-all text-slate-600 py-1 px-3 rounded-xl cursor-pointer"
             >
               Novedades
             </button>
 
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={onOpenAdmin}
+                className="py-1 px-3.5 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-blue-600/25 hover:bg-blue-700"
+              >
+                <Shield className="w-3.5 h-3.5 text-cyan-200" />
+                <span>Administración</span>
+              </button>
+            )}
+
             <button
               onClick={() => onChangeTab('login')}
-              className={`relative py-1.5 transition-colors cursor-pointer ${
+              className={`relative py-1 px-3 rounded-xl transition-all cursor-pointer ${
                 activeTab === 'login' 
-                  ? 'text-blue-600 font-bold' 
-                  : 'hover:text-blue-500'
+                  ? 'text-blue-600 font-bold bg-white/80 border border-white/90 shadow-sm backdrop-blur-lg' 
+                  : 'hover:text-blue-600 hover:bg-white/60'
               }`}
             >
-              Mi Cuenta
-              {activeTab === 'login' && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
-              )}
+              {currentUser ? `Hola, ${currentUser.full_name?.split(' ')[0] || 'Doctor'}` : 'Mi Cuenta'}
             </button>
           </nav>
 
-          {/* Right Action Icons (Search, User, Cart count indicator) */}
-          <div className="flex items-center gap-4">
+          {/* Right Action Icons (Search, Admin, User, Cart count indicator) */}
+          <div className="flex items-center gap-2.5">
             
             {/* Search toggler */}
             <div className="relative">
               {showSearchBox ? (
-                <form onSubmit={handleSearchSubmit} className="absolute right-0 top-1/2 -translate-y-1/2 z-20 flex items-center bg-white shadow-md border border-slate-200 rounded-full py-1.5 px-3 w-56 md:w-72">
+                <form onSubmit={handleSearchSubmit} className="absolute right-0 top-1/2 -translate-y-1/2 z-20 flex items-center bg-white/70 backdrop-blur-3xl shadow-2xl border border-white/90 rounded-full py-1.5 px-3 w-56 md:w-72">
                   <input
                     type="text"
                     placeholder="Buscar instrumental, resinas..."
@@ -183,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   id="search-toggle-btn"
                   onClick={() => setShowSearchBox(true)}
-                  className="p-2.5 hover:bg-slate-100 rounded-full text-slate-700 transition-colors cursor-pointer"
+                  className="p-2.5 bg-white/50 hover:bg-white/80 backdrop-blur-2xl border border-white/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_10px_rgba(15,23,89,0.05)] rounded-full text-slate-700 transition-all cursor-pointer"
                   title="Buscar productos"
                 >
                   <Search className="w-5 h-5" />
@@ -191,38 +172,47 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </div>
 
-            {/* Profile icon linking directly to Login view */}
+            {/* Admin Quick Access Button */}
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={onOpenAdmin}
+                className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-md shadow-blue-600/25 transition-all cursor-pointer"
+                title="Panel de Administración"
+              >
+                <Shield className="w-5 h-5 text-cyan-200" />
+              </button>
+            )}
+
+            {/* Profile icon */}
             <button
               id="user-profile-btn"
               onClick={() => onChangeTab('login')}
-              className={`p-2.5 rounded-full transition-colors cursor-pointer ${
-                activeTab === 'login' ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100 text-slate-700'
+              className={`p-2.5 rounded-full backdrop-blur-2xl border border-white/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_10px_rgba(15,23,89,0.05)] transition-all cursor-pointer ${
+                activeTab === 'login' || currentUser ? 'bg-blue-50/90 text-blue-600' : 'bg-white/50 hover:bg-white/80 text-slate-700'
               }`}
-              title="Iniciar sesión"
+              title={currentUser ? currentUser.email : "Iniciar sesión"}
             >
               <User className="w-5 h-5" />
             </button>
 
-            {/* Shopping cart icon with real badge indicator */}
+            {/* Shopping cart icon */}
             <button
               id="cart-toggle-btn"
               onClick={onToggleCart}
-              className="p-2.5 hover:bg-slate-100 rounded-full text-slate-700 transition-colors relative cursor-pointer"
+              className="p-2.5 bg-white/50 hover:bg-white/80 backdrop-blur-2xl border border-white/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),0_2px_10px_rgba(15,23,89,0.05)] rounded-full text-slate-700 transition-all relative cursor-pointer"
               title="Ver carrito"
             >
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-blue-600 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-blue-600 text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-md animate-pulse">
                   {cartCount}
                 </span>
               )}
             </button>
           </div>
+
         </div>
       </div>
-
-      {/* Spacing if scrolled to prevent layout jumping */}
-      {scrolled && <div className="h-[73px] w-full" />}
     </header>
   );
 };
