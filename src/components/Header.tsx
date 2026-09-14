@@ -147,15 +147,18 @@ export const Header: React.FC<HeaderProps> = ({
               Novedades
             </button>
 
-            {currentUser?.role === 'admin' && (
-              <button
-                onClick={onOpenAdmin}
-                className="py-1 px-3.5 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-blue-600/25 hover:bg-blue-700"
-              >
-                <Shield className="w-3.5 h-3.5 text-cyan-200" />
-                <span>Administración</span>
-              </button>
-            )}
+            <button
+              onClick={onOpenAdmin}
+              className={`py-1 px-3.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+                currentUser?.role === 'admin'
+                  ? 'bg-blue-600 text-white shadow-blue-600/25 hover:bg-blue-700'
+                  : 'bg-slate-900 text-cyan-300 hover:bg-slate-800 border border-slate-700'
+              }`}
+              title="Panel de Administración (Productos, Textos y Redes)"
+            >
+              <Shield className="w-3.5 h-3.5 text-cyan-300" />
+              <span>Panel Admin</span>
+            </button>
 
             <button
               onClick={() => onChangeTab('login')}
@@ -208,15 +211,13 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Admin Quick Access Button */}
-            {currentUser?.role === 'admin' && (
-              <button
-                onClick={onOpenAdmin}
-                className="p-2 sm:p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl sm:rounded-full shadow-md shadow-blue-600/25 transition-all cursor-pointer"
-                title="Panel de Administración"
-              >
-                <Shield className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-cyan-200" />
-              </button>
-            )}
+            <button
+              onClick={onOpenAdmin}
+              className="p-2 sm:p-2.5 bg-slate-900 hover:bg-blue-600 text-cyan-300 hover:text-white rounded-2xl sm:rounded-full shadow-md transition-all cursor-pointer border border-slate-700"
+              title="Panel de Administración (Editar Productos, Textos, Redes)"
+            >
+              <Shield className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-cyan-300" />
+            </button>
 
             {/* Profile icon */}
             <button
@@ -334,21 +335,19 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             </div>
 
-            {/* Admin Panel Quick Action on Mobile if Admin */}
-            {currentUser?.role === 'admin' && (
-              <div className="pt-2 border-t border-slate-200/80">
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenAdmin?.();
-                  }}
-                  className="w-full py-3 bg-gradient-to-r from-[#0F2C59] to-blue-700 text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-md"
-                >
-                  <Shield className="w-4 h-4 text-cyan-300" />
-                  <span>Panel de Administración</span>
-                </button>
-              </div>
-            )}
+            {/* Admin Panel Quick Action on Mobile */}
+            <div className="pt-2 border-t border-slate-200/80">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAdmin?.();
+                }}
+                className="w-full py-3 bg-gradient-to-r from-slate-900 to-[#0F2C59] text-white rounded-2xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-md border border-slate-700 cursor-pointer"
+              >
+                <Shield className="w-4 h-4 text-cyan-300" />
+                <span>Panel de Administración (Textos, Redes y Productos)</span>
+              </button>
+            </div>
 
             {/* Direct WhatsApp Callout in Mobile Menu */}
             <div className="pt-2 border-t border-slate-200/80">

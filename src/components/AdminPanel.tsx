@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { Product } from '../types';
+import React, { useState, useEffect } from 'react';
+import { Product, SiteContent, DEFAULT_SITE_CONTENT } from '../types';
 import { 
   CategoryItem, 
   getSupabase, 
   isSupabaseConfigured, 
   UserProfile,
   fetchProductsFromDB,
-  fetchCategoriesFromDB
+  fetchCategoriesFromDB,
+  fetchSiteContentFromDB,
+  saveSiteContentToDB
 } from '../lib/supabase';
 import { 
   Plus, 
@@ -19,19 +21,23 @@ import {
   AlertCircle, 
   Search, 
   Sparkles,
-  RefreshCw,
   PackagePlus,
   Layers,
-  ArrowRight,
-  Image as ImageIcon,
-  ExternalLink,
-  Tag,
+  FileText,
   DollarSign,
   Star,
   Check,
   Flame,
-  AlertTriangle
+  AlertTriangle,
+  RotateCcw,
+  Image as ImageIcon,
+  Globe,
+  MapPin,
+  Share2,
+  Instagram,
+  Facebook
 } from 'lucide-react';
+import { TikTokIcon } from './SocialIcons';
 import { ProductSVG } from './ProductSVG';
 
 interface AdminPanelProps {
@@ -39,9 +45,11 @@ interface AdminPanelProps {
   onClose: () => void;
   products: Product[];
   categories: CategoryItem[];
+  siteContent?: SiteContent;
   userProfile: UserProfile | null;
   onProductsUpdated: (products: Product[]) => void;
   onCategoriesUpdated: (categories: CategoryItem[]) => void;
+  onSiteContentUpdated?: (content: SiteContent) => void;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
@@ -49,14 +57,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onClose,
   products,
   categories,
+  siteContent = DEFAULT_SITE_CONTENT,
   userProfile,
   onProductsUpdated,
-  onCategoriesUpdated
+  onCategoriesUpdated,
+  onSiteContentUpdated
 }) => {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content'>('products');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [savingContent, setSavingContent] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Site Content Form State
+  const [siteForm, setSiteForm] = useState<SiteContent>(siteContent || DEFAULT_SITE_CONTENT);
+
+  useEffect(() => {
+    if (siteContent) {
+      setSiteForm(siteContent);
+    }
+  }, [siteContent]);
 
   // In-app Delete Confirmation State (Bypasses iframe window.confirm blocks)
   const [itemToDelete, setItemToDelete] = useState<{ type: 'product' | 'category'; id: string; name: string } | null>(null);
@@ -332,6 +352,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setLoading(false);
   };
 
+  const handleSaveSiteContent = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSavingContent(true);
+    try {
+      if (isSupabaseConfigured()) {
+        await saveSiteContentToDB(siteForm);
+      }
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(siteForm);
+      }
+      showFeedback('success', '¡Todos los textos del Home, Footer y enlaces de Redes Sociales se han guardado con éxito!');
+    } catch (err: any) {
+      console.error('Error guardando contenido:', err);
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(siteForm);
+      }
+      showFeedback('error', 'Error al guardar en Supabase: ' + (err?.message || 'Verifica la configuración'));
+    } finally {
+      setSavingContent(false);
+    }
+  };
+
+  const handleResetSiteContent = () => {
+    if (window.confirm('¿Deseas restaurar todos los textos predeterminados originales?')) {
+      setSiteForm(DEFAULT_SITE_CONTENT);
+      showFeedback('success', 'Valores restaurados. Haz clic en "Guardar Cambios" para aplicar a la base de datos.');
+    }
+  };
+
   const handleRefreshFromDB = async () => {
     setLoading(true);
     const freshProducts = await fetchProductsFromDB();
@@ -428,6 +477,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <Layers className="w-3.5 h-3.5" />
               <span>Categorías ({categories.length})</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('content')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                activeTab === 'content'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Textos y Redes</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -452,6 +513,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <span>Nuevo Producto</span>
                 </button>
               </>
+            )}
+
+            {activeTab === 'content' && (
+              <div className="flex items-center gap-2 ml-auto">
+                <button
+                  type="button"
+                  onClick={handleResetSiteContent}
+                  className="px-3 py-2 bg-white/70 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Restaurar textos por defecto"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Restaurar</span>
+                </button>
+                <button
+                  onClick={handleSaveSiteContent}
+                  disabled={savingContent}
+                  className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{savingContent ? 'Guardando...' : 'Guardar Todo'}</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -661,6 +744,464 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
             </div>
+          )}
+
+          {/* TAB 3: SITE CONTENT, FOOTER & SOCIAL LINKS */}
+          {activeTab === 'content' && (
+            <form onSubmit={handleSaveSiteContent} className="space-y-6 max-w-5xl mx-auto pb-10">
+              
+              {/* Top Banner Notice */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-sm">Editor de Textos del Sitio Web y Redes</h3>
+                    <p className="text-xs text-slate-500">Personaliza fácilmente el Hero, contenedor central, footer y enlaces a Instagram, Facebook y TikTok</p>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={savingContent}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md shadow-blue-600/25 transition-all cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{savingContent ? 'Guardando...' : 'Guardar Cambios'}</span>
+                </button>
+              </div>
+
+              {/* CARD 1: HERO (CABECERA PRINCIPAL) */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">1. Sección Hero (Cabecera Principal)</h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Título Principal (Línea 1)</label>
+                    <input
+                      type="text"
+                      value={siteForm.hero_title_line1}
+                      onChange={(e) => setSiteForm({ ...siteForm, hero_title_line1: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Título Principal Resaltado (Línea 2)</label>
+                    <input
+                      type="text"
+                      value={siteForm.hero_title_line2}
+                      onChange={(e) => setSiteForm({ ...siteForm, hero_title_line2: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-blue-600 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Descripción / Párrafo del Hero</label>
+                  <textarea
+                    value={siteForm.hero_description}
+                    onChange={(e) => setSiteForm({ ...siteForm, hero_description: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    rows={2}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Texto Botón Primario</label>
+                    <input
+                      type="text"
+                      value={siteForm.hero_cta_primary}
+                      onChange={(e) => setSiteForm({ ...siteForm, hero_cta_primary: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Texto Botón Secundario</label>
+                    <input
+                      type="text"
+                      value={siteForm.hero_cta_secondary}
+                      onChange={(e) => setSiteForm({ ...siteForm, hero_cta_secondary: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-100">
+                  <h5 className="font-bold text-slate-700 text-xs mb-3">Tarjeta Flotante de Cristal (Hero Derecho):</h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="font-medium text-slate-600 block mb-1 text-[11px]">Texto Superior</label>
+                      <input
+                        type="text"
+                        value={siteForm.hero_card_title}
+                        onChange={(e) => setSiteForm({ ...siteForm, hero_card_title: e.target.value })}
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-medium text-slate-600 block mb-1 text-[11px]">Palabra Resaltada</label>
+                      <input
+                        type="text"
+                        value={siteForm.hero_card_highlight}
+                        onChange={(e) => setSiteForm({ ...siteForm, hero_card_highlight: e.target.value })}
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-medium text-slate-600 block mb-1 text-[11px]">Texto del Botón</label>
+                      <input
+                        type="text"
+                        value={siteForm.hero_card_cta}
+                        onChange={(e) => setSiteForm({ ...siteForm, hero_card_cta: e.target.value })}
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 2: BENEFICIOS (3 COLUMNAS) */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <Shield className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">2. Barra de 3 Beneficios (Bajo el Hero)</h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                    <span className="text-[11px] font-bold text-blue-600 block">Beneficio 1 (Garantía)</span>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      value={siteForm.feature1_title}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature1_title: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                    />
+                    <textarea
+                      placeholder="Descripción"
+                      value={siteForm.feature1_desc}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature1_desc: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                    <span className="text-[11px] font-bold text-blue-600 block">Beneficio 2 (Envíos)</span>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      value={siteForm.feature2_title}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature2_title: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                    />
+                    <textarea
+                      placeholder="Descripción"
+                      value={siteForm.feature2_desc}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature2_desc: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                    <span className="text-[11px] font-bold text-blue-600 block">Beneficio 3 (Atención)</span>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      value={siteForm.feature3_title}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature3_title: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                    />
+                    <textarea
+                      placeholder="Descripción"
+                      value={siteForm.feature3_desc}
+                      onChange={(e) => setSiteForm({ ...siteForm, feature3_desc: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 3: CONTENEDOR CENTRAL (BANNER CORPORATIVO) */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <PackagePlus className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">3. Contenedor Central (Banner Promocional)</h4>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Título Principal del Banner Central</label>
+                  <input
+                    type="text"
+                    value={siteForm.banner_title}
+                    onChange={(e) => setSiteForm({ ...siteForm, banner_title: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Descripción del Banner Central</label>
+                  <textarea
+                    value={siteForm.banner_description}
+                    onChange={(e) => setSiteForm({ ...siteForm, banner_description: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    rows={2}
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Insignia / Check 1</label>
+                    <input
+                      type="text"
+                      value={siteForm.banner_badge1}
+                      onChange={(e) => setSiteForm({ ...siteForm, banner_badge1: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Insignia / Check 2</label>
+                    <input
+                      type="text"
+                      value={siteForm.banner_badge2}
+                      onChange={(e) => setSiteForm({ ...siteForm, banner_badge2: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Insignia / Check 3</label>
+                    <input
+                      type="text"
+                      value={siteForm.banner_badge3}
+                      onChange={(e) => setSiteForm({ ...siteForm, banner_badge3: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Texto del Botón CTA</label>
+                  <input
+                    type="text"
+                    value={siteForm.banner_cta}
+                    onChange={(e) => setSiteForm({ ...siteForm, banner_cta: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* CARD 4: TITULOS DE SECCIONES DEL CATÁLOGO */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <Star className="w-4 h-4 text-amber-500" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">4. Títulos de Secciones del Catálogo</h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                    <span className="text-[11px] font-bold text-slate-700 block">Sección: Productos Destacados</span>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      value={siteForm.featured_section_title}
+                      onChange={(e) => setSiteForm({ ...siteForm, featured_section_title: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Subtítulo o descripción"
+                      value={siteForm.featured_section_subtitle}
+                      onChange={(e) => setSiteForm({ ...siteForm, featured_section_subtitle: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                    />
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/70 space-y-2">
+                    <span className="text-[11px] font-bold text-slate-700 block">Sección: Productos en Tendencia</span>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      value={siteForm.trending_section_title}
+                      onChange={(e) => setSiteForm({ ...siteForm, trending_section_title: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Subtítulo o descripción"
+                      value={siteForm.trending_section_subtitle}
+                      onChange={(e) => setSiteForm({ ...siteForm, trending_section_subtitle: e.target.value })}
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 5: FOOTER Y DATOS DE CONTACTO */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">5. Footer, Ubicación y Datos de Contacto</h4>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Descripción de la Empresa en el Footer</label>
+                  <textarea
+                    value={siteForm.footer_description}
+                    onChange={(e) => setSiteForm({ ...siteForm, footer_description: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    rows={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Dirección Completa de la Sede</label>
+                  <textarea
+                    value={siteForm.footer_address}
+                    onChange={(e) => setSiteForm({ ...siteForm, footer_address: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">WhatsApp (Texto visible)</label>
+                    <input
+                      type="text"
+                      value={siteForm.footer_whatsapp}
+                      onChange={(e) => setSiteForm({ ...siteForm, footer_whatsapp: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Enlace Directo de WhatsApp (https://wa.me/...)</label>
+                    <input
+                      type="text"
+                      value={siteForm.footer_whatsapp_link}
+                      onChange={(e) => setSiteForm({ ...siteForm, footer_whatsapp_link: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-emerald-700"
+                      placeholder="https://wa.me/584144873395"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Teléfono de Oficina</label>
+                    <input
+                      type="text"
+                      value={siteForm.footer_office_phone}
+                      onChange={(e) => setSiteForm({ ...siteForm, footer_office_phone: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Correo Electrónico de Contacto</label>
+                    <input
+                      type="email"
+                      value={siteForm.footer_email}
+                      onChange={(e) => setSiteForm({ ...siteForm, footer_email: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1 text-xs">Texto de Créditos / Autor</label>
+                  <input
+                    type="text"
+                    value={siteForm.footer_credits}
+                    onChange={(e) => setSiteForm({ ...siteForm, footer_credits: e.target.value })}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
+                  />
+                </div>
+              </div>
+
+              {/* CARD 6: REDES SOCIALES (SOLO INSTAGRAM, FACEBOOK Y TIKTOK) */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-2xl p-6 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-slate-100">
+                  <Share2 className="w-4 h-4 text-blue-600" />
+                  <h4 className="font-extrabold text-slate-900 text-sm">6. Enlaces de Redes Sociales (Instagram, Facebook y TikTok)</h4>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-slate-700 flex items-center gap-2 mb-1 text-xs">
+                      <Instagram className="w-4 h-4 text-pink-600" />
+                      <span>Enlace de Instagram</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={siteForm.social_instagram}
+                      onChange={(e) => setSiteForm({ ...siteForm, social_instagram: e.target.value })}
+                      placeholder="https://instagram.com/tu_cuenta"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 flex items-center gap-2 mb-1 text-xs">
+                      <Facebook className="w-4 h-4 text-blue-600" />
+                      <span>Enlace de Facebook</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={siteForm.social_facebook}
+                      onChange={(e) => setSiteForm({ ...siteForm, social_facebook: e.target.value })}
+                      placeholder="https://facebook.com/tu_pagina"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 flex items-center gap-2 mb-1 text-xs">
+                      <TikTokIcon className="w-4 h-4 text-slate-900" />
+                      <span>Enlace de TikTok</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={siteForm.social_tiktok}
+                      onChange={(e) => setSiteForm({ ...siteForm, social_tiktok: e.target.value })}
+                      placeholder="https://tiktok.com/@tu_cuenta"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Save Action Button */}
+              <div className="flex items-center justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleResetSiteContent}
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Restaurar Valores por Defecto</span>
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={savingContent}
+                  className="px-8 py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl text-sm font-extrabold flex items-center gap-2 shadow-lg shadow-blue-600/30 transition-all cursor-pointer"
+                >
+                  <Save className="w-4.5 h-4.5" />
+                  <span>{savingContent ? 'Guardando cambios en Supabase...' : 'Guardar Todos los Textos y Redes'}</span>
+                </button>
+              </div>
+
+            </form>
           )}
 
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveTab, CartItem, Product } from './types';
+import { ActiveTab, CartItem, Product, SiteContent, DEFAULT_SITE_CONTENT } from './types';
 import { PRODUCTS, CATEGORIES } from './data';
 import { Header } from './components/Header';
 import { HomeView } from './components/HomeView';
@@ -8,9 +8,11 @@ import { LoginView } from './components/LoginView';
 import { CartDrawer } from './components/CartDrawer';
 import { AdminPanel } from './components/AdminPanel';
 import { ProductSVG } from './components/ProductSVG';
+import { SocialIcons } from './components/SocialIcons';
 import { 
   fetchProductsFromDB, 
-  fetchCategoriesFromDB, 
+  fetchCategoriesFromDB,
+  fetchSiteContentFromDB,
   getSupabase, 
   UserProfile, 
   CategoryItem 
@@ -20,9 +22,6 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  Instagram, 
-  Facebook, 
-  Twitter, 
   ShieldCheck, 
   Star, 
   X, 
@@ -42,12 +41,13 @@ export default function App() {
   const [searchFilter, setSearchFilter] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Dynamic products and categories state (with seamless local fallback)
+  // Dynamic products, categories, and site content state
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [categories, setCategories] = useState<CategoryItem[]>(CATEGORIES);
+  const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
-  // Fetch data and auth state from Supabase on mount
+  // Fetch data, site texts, and auth state from Supabase on mount
   useEffect(() => {
     const initData = async () => {
       const dbProducts = await fetchProductsFromDB();
@@ -58,6 +58,11 @@ export default function App() {
       const dbCategories = await fetchCategoriesFromDB();
       if (dbCategories && dbCategories.length > 0) {
         setCategories(dbCategories);
+      }
+
+      const dbContent = await fetchSiteContentFromDB();
+      if (dbContent) {
+        setSiteContent(dbContent);
       }
 
       const sb = getSupabase();
@@ -195,6 +200,7 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             products={products}
+            siteContent={siteContent}
             onAddToCart={handleAddToCart}
             onChangeTab={handleTabChange}
             onSelectProduct={setSelectedProduct}
@@ -337,19 +343,16 @@ export default function App() {
                 />
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Distribuidora líder de instrumental rotatorio, equipamiento clínico de vanguardia y consumibles odontológicos de máxima precisión.
+                {siteContent.footer_description}
               </p>
               
-              <div className="pt-1 flex items-center gap-3 text-slate-400">
-                <a href="#instagram" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a href="#facebook" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a href="#twitter" className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors">
-                  <Twitter className="w-4 h-4" />
-                </a>
+              {/* Social networks - ONLY Instagram, Facebook, and TikTok */}
+              <div className="pt-1">
+                <SocialIcons 
+                  instagram={siteContent.social_instagram}
+                  facebook={siteContent.social_facebook}
+                  tiktok={siteContent.social_tiktok}
+                />
               </div>
             </div>
 
@@ -360,23 +363,36 @@ export default function App() {
                 <li className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                   <span className="leading-snug">
-                    Urbanización valle lindo, calle principal sector 2, al lado del C.E.I.P Los Niños del Libertador, municipio Santiago mariño, Turmero, Edo. Aragua, Venezuela.
+                    {siteContent.footer_address}
                   </span>
                 </li>
-                <li className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <a href="https://wa.me/584144873395" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-300 font-semibold text-slate-300">
-                    +58 414-4873395 (WhatsApp)
-                  </a>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>+58 244 661 1090 (Oficina)</span>
-                </li>
-                <li className="flex items-center gap-2.5">
-                  <Mail className="w-4 h-4 text-blue-400 shrink-0" />
-                  <span>ventas@dentalmatvv.com</span>
-                </li>
+                {siteContent.footer_whatsapp && (
+                  <li className="flex items-center gap-2.5">
+                    <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <a 
+                      href={siteContent.footer_whatsapp_link || `https://wa.me/584144873395`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:text-emerald-300 font-semibold text-slate-300"
+                    >
+                      {siteContent.footer_whatsapp}
+                    </a>
+                  </li>
+                )}
+                {siteContent.footer_office_phone && (
+                  <li className="flex items-center gap-2.5">
+                    <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>{siteContent.footer_office_phone}</span>
+                  </li>
+                )}
+                {siteContent.footer_email && (
+                  <li className="flex items-center gap-2.5">
+                    <Mail className="w-4 h-4 text-blue-400 shrink-0" />
+                    <a href={`mailto:${siteContent.footer_email}`} className="hover:text-white transition-colors">
+                      {siteContent.footer_email}
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -387,9 +403,21 @@ export default function App() {
             <div>
               &copy; {new Date().getFullYear()} DentalMatVV. Todos los derechos reservados.
             </div>
+            
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsAdminOpen(true)}
+                className="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-700"
+                title="Abrir panel de administración"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Panel Administrativo</span>
+              </button>
+            </div>
+
             <div className="flex items-center gap-1.5">
               <span>Desarrollo de Software y Diseño:</span>
-              <strong className="text-slate-400 font-semibold">Hecho por Legaint Corporation</strong>
+              <strong className="text-slate-400 font-semibold">{siteContent.footer_credits || 'Hecho por Legaint Corporation'}</strong>
             </div>
           </div>
 
@@ -405,15 +433,17 @@ export default function App() {
         onOpenAdminPanel={() => setIsAdminOpen(true)}
       />
 
-      {/* 7. Full Admin Panel for Products & Categories Management */}
+      {/* 7. Full Admin Panel for Products, Categories & Site Content Management */}
       <AdminPanel
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
         products={products}
         categories={categories}
+        siteContent={siteContent}
         userProfile={currentUser}
         onProductsUpdated={setProducts}
         onCategoriesUpdated={setCategories}
+        onSiteContentUpdated={setSiteContent}
       />
 
     </div>

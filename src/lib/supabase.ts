@@ -1,6 +1,8 @@
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
-import { Product } from '../types';
+import { Product, SiteContent, DEFAULT_SITE_CONTENT } from '../types';
+import { PRODUCTS, CATEGORIES } from '../data';
 
+// Read exclusively from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
@@ -32,7 +34,7 @@ export const getSupabase = (): SupabaseClient | null => {
 };
 
 export const supabase = isSupabaseConfigured()
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? getSupabase()
   : null;
 
 export interface UserProfile {
@@ -52,52 +54,100 @@ export interface CategoryItem {
   sort_order?: number;
 }
 
-// Data fetchers with seamless fallback
-export async function fetchProductsFromDB(): Promise<Product[] | null> {
+// Data fetchers querying directly from Supabase Database
+export async function fetchProductsFromDB(): Promise<Product[]> {
   const sb = getSupabase();
-  if (!sb) return null;
-  try {
-    const { data, error } = await sb
-      .from('products')
-      .select('*')
-      .order('name', { ascending: true });
-    if (error || !data) {
-      console.warn('Error fetching products from Supabase, using local catalog:', error?.message);
-      return null;
+  if (sb) {
+    try {
+      const { data, error } = await sb
+        .from('products')
+        .select('*')
+        .order('name', { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          brand: item.brand,
+          price: Number(item.price),
+          originalPrice: item.original_price ? Number(item.original_price) : undefined,
+          image: item.image,
+          category: item.category,
+          description: item.description,
+          specs: Array.isArray(item.specs) ? item.specs : (typeof item.specs === 'string' ? JSON.parse(item.specs) : []),
+          isFeatured: Boolean(item.is_featured),
+          isTrending: Boolean(item.is_trending),
+          rating: Number(item.rating || 5.0),
+          reviewsCount: Number(item.reviews_count || 0),
+          availability: item.availability || 'disponible',
+        }));
+      }
+    } catch (err) {
+      console.warn('Supabase fetch products error:', err);
     }
-    return data.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      brand: item.brand,
-      price: Number(item.price),
-      originalPrice: item.original_price ? Number(item.original_price) : undefined,
-      image: item.image,
-      category: item.category,
-      description: item.description,
-      specs: Array.isArray(item.specs) ? item.specs : (typeof item.specs === 'string' ? JSON.parse(item.specs) : []),
-      isFeatured: Boolean(item.is_featured),
-      isTrending: Boolean(item.is_trending),
-      rating: Number(item.rating || 5.0),
-      reviewsCount: Number(item.reviews_count || 0),
-      availability: item.availability || 'disponible',
-    }));
+  }
+  return PRODUCTS;
+}
+
+export async function fetchCategoriesFromDB(): Promise<CategoryItem[]> {
+  const sb = getSupabase();
+  if (sb) {
+    try {
+      const { data, error } = await sb
+        .from('categories')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (!error && data && data.length > 0) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Supabase fetch categories error:', err);
+    }
+  }
+  return CATEGORIES;
+}
+
+export async function fetchSiteContentFromDB(): Promise<SiteContent> {
+  const sb = getSupabase();
+  if (sb) {
+    try {
+      const { data, error } = await sb
+        .from('site_settings')
+        .select('content')
+        .eq('id', 'main')
+        .single();
+      if (!error && data && data.content) {
+        return { ...DEFAULT_SITE_CONTENT, ...data.content };
+      }
+    } catch (err) {
+      console.warn('Error fetching site content from Supabase:', err);
+    }
+  }
+  return DEFAULT_SITE_CONTENT;
+}
+
+export async function saveSiteContentToDB(content: SiteContent): Promise<boolean> {
+  const sb = getSupabase();
+  if (!sb) {
+    throw new Error('Supabase no está configurado en las variables de entorno.');
+  }
+  try {
+    const { error } = await sb
+      .from('site_settings')
+      .upsert({
+        id: 'main',
+        content,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    if (error) {
+      console.error('Error guardando contenido en Supabase:', error);
+      throw error;
+    }
+    return true;
   } catch (err) {
-    console.warn('Supabase fetch products error:', err);
-    return null;
+    console.error('Error en saveSiteContentToDB:', err);
+    throw err;
   }
 }
 
-export async function fetchCategoriesFromDB(): Promise<CategoryItem[] | null> {
-  const sb = getSupabase();
-  if (!sb) return null;
-  try {
-    const { data, error } = await sb
-      .from('categories')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    if (error || !data) return null;
-    return data;
-  } catch (err) {
-    return null;
-  }
-}
+
+
