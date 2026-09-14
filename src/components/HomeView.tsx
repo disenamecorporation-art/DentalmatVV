@@ -156,24 +156,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* SECTION 3: FEATURED PRODUCTS ("Productos destacados") */}
-      <section id="productos-destacados-section" className="max-w-7xl mx-auto px-4 md:px-6 py-14">
-        <div className="flex items-center justify-between mb-8">
+      <section id="productos-destacados-section" className="max-w-7xl mx-auto px-4 md:px-6 py-10 sm:py-14">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 sm:mb-8">
           <div>
-            <h2 className="text-xl md:text-2xl font-extrabold text-[#0F2C59] tracking-tight">
+            <h2 className="text-lg sm:text-2xl font-extrabold text-[#0F2C59] tracking-tight">
               Productos destacados
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">Los instrumentos de máxima precisión preferidos por cirujanos dentales</p>
+            <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Los instrumentos de máxima precisión preferidos por cirujanos dentales</p>
           </div>
           <button
             onClick={() => onChangeTab('tienda')}
-            className="text-xs md:text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group transition-colors cursor-pointer"
+            className="text-xs sm:text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group transition-colors cursor-pointer self-start sm:self-auto"
           >
             <span>Ver todos los productos</span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {featured.map((product) => (
             <ProductCard
               key={product.id}
@@ -186,39 +186,39 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* SECTION 4: BIG HIGH-IMPACT HERO BANNER CTA */}
-      <section className="w-full bg-[#0F2C59] relative overflow-hidden py-16 md:py-20 text-white">
+      <section className="w-full bg-[#0F2C59] relative overflow-hidden py-12 sm:py-20 text-white">
         {/* Abstract glowing medical light effect */}
         <div className="absolute right-[-100px] top-[-100px] w-96 h-96 bg-blue-500/20 rounded-full filter blur-3xl pointer-events-none" />
         <div className="absolute left-[-50px] bottom-[-50px] w-80 h-80 bg-cyan-500/15 rounded-full filter blur-3xl pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
-          <div className="max-w-3xl space-y-6">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+          <div className="max-w-3xl space-y-4 sm:space-y-6">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
               ¿Equipando un nuevo consultorio dental?
             </h2>
-            <p className="text-blue-100/80 text-sm md:text-base leading-relaxed max-w-xl">
+            <p className="text-blue-100/80 text-xs sm:text-base leading-relaxed max-w-xl">
               Ofrecemos planes de financiamiento a medida, instalación técnica certificada de sillones y autoclaves, y descuentos por volumen corporativo para clínicas y facultades de odontología.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2">
+              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                 <Check className="w-4 h-4 text-cyan-300 flex-shrink-0" />
                 <span>Asistencia Técnica 24/7</span>
               </div>
-              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                 <Check className="w-4 h-4 text-cyan-300 flex-shrink-0" />
                 <span>Capacitaciones de uso</span>
               </div>
-              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3.5 backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-xs font-semibold bg-white/5 border border-white/10 rounded-xl p-3 sm:p-3.5 backdrop-blur-sm">
                 <Check className="w-4 h-4 text-cyan-300 flex-shrink-0" />
                 <span>Garantía de hasta 3 años</span>
               </div>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-2 sm:pt-4">
               <button
                 onClick={() => onChangeTab('tienda')}
-                className="bg-cyan-400 hover:bg-cyan-500 text-slate-900 font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-cyan-900/30 hover:shadow-cyan-400/20 flex items-center gap-2 text-sm md:text-base cursor-pointer"
+                className="w-full sm:w-auto bg-cyan-400 hover:bg-cyan-500 text-slate-900 font-bold px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl transition-all shadow-lg shadow-cyan-900/30 hover:shadow-cyan-400/20 flex items-center justify-center gap-2 text-xs sm:text-base cursor-pointer"
               >
                 <span>Solicitar presupuesto corporativo</span>
                 <ArrowRight className="w-4.5 h-4.5" />
@@ -229,15 +229,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </section>
 
       {/* SECTION 5: TRENDING PRODUCTS ("Productos en tendencia") */}
-      <section id="productos-tendencia-section" className="max-w-7xl mx-auto px-4 md:px-6 py-16">
-        <div className="mb-8">
-          <h2 className="text-xl md:text-2xl font-extrabold text-[#0F2C59] tracking-tight">
+      <section id="productos-tendencia-section" className="max-w-7xl mx-auto px-4 md:px-6 py-10 sm:py-16">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-lg sm:text-2xl font-extrabold text-[#0F2C59] tracking-tight">
             Productos en tendencia
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">Los consumibles y accesorios más comprados esta semana por laboratorios y odontólogos</p>
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Los consumibles y accesorios más comprados esta semana por laboratorios y odontólogos</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {trending.map((product) => (
             <ProductCard
               key={product.id}

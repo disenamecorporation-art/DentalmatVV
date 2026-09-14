@@ -289,18 +289,17 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </div>
 
             {/* Form Body */}
-            <div className="p-8 space-y-5 overflow-y-auto max-h-[75vh] relative z-10">
+            <div className="p-5 sm:p-8 space-y-4 sm:space-y-5 overflow-y-auto max-h-[75vh] relative z-10">
               
               <div className="text-center space-y-1.5">
-                <h2 className="text-2xl font-extrabold text-[#0F2C59] tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#0F2C59] tracking-tight">
                   {activeTab === 'login' ? '¡Bienvenido de vuelta!' : 'Únete a DentalMatVV'}
                 </h2>
-                <p className="text-xs text-slate-600 font-medium">
-                  {activeTab === 'login' 
-                    ? 'Ingresa a tu cuenta para gestionar pedidos y catálogo.' 
-                    : 'Registro inmediato sin esperas ni confirmación de email.'
-                  }
-                </p>
+                {activeTab === 'login' && (
+                  <p className="text-xs text-slate-600 font-medium">
+                    Ingresa a tu cuenta para continuar.
+                  </p>
+                )}
               </div>
 
               {/* Status Alert Messages */}
@@ -440,29 +439,6 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 </button>
 
               </form>
-
-              {/* Admin Shortcut for Testing / Fast Preview */}
-              <div className="pt-2 border-t border-white/60 text-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const testAdmin: UserProfile = {
-                      id: 'admin-master-id',
-                      email: 'admin@dentalmatvv.com',
-                      full_name: 'Administrador DentalMatVV',
-                      role: 'admin',
-                      clinical_id: 'ADMIN-01'
-                    };
-                    onUserChange(testAdmin);
-                    onClose();
-                    onOpenAdminPanel();
-                  }}
-                  className="text-[11px] text-slate-500 hover:text-blue-600 font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1 mx-auto"
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  <span>Acceso Directo Modo Administrador</span>
-                </button>
-              </div>
 
             </div>
           </>

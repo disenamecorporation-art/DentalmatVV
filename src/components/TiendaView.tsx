@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Product, FilterState } from '../types';
 import { ProductCard } from './ProductCard';
 import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, RefreshCw, Star, Info } from 'lucide-react';
@@ -141,49 +141,75 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
 
   // Paginated/Sliced subset
   const displayedProducts = filteredProducts.slice(0, visibleCount);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Active filters count
+  const activeFiltersCount = 
+    (filters.category !== 'all' ? 1 : 0) +
+    (filters.brand.length) +
+    (filters.availability.length) +
+    (filters.searchQuery ? 1 : 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-10">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 sm:py-8">
       
-      {/* Intro banner with sharp glassmorphism background */}
-      <div className="glass-card p-6 md:p-8 rounded-3xl mb-8 border border-white/60 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_35px_rgba(0,102,255,0.03)]">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#0F2C59] tracking-tight">
-            Catálogo Odontológico
-          </h1>
-          <p className="text-xs text-slate-500 max-w-xl">
-            Explore los insumos y equipamientos líderes importados de Alemania, Japón y EE.UU. con certificación internacional y soporte clínico de primer nivel.
-          </p>
-        </div>
+      {/* Page Title & Mobile Filter Action */}
+      <div className="flex items-center justify-between gap-4 mb-5 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F2C59] tracking-tight">
+          Catálogo Odontológico
+        </h1>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Quick Stats inside Header Banner */}
-          <div className="bg-white/80 border border-slate-100 rounded-xl px-4 py-2.5 text-center">
-            <span className="block text-[10px] text-slate-400 font-semibold uppercase">Total items</span>
-            <span className="text-sm font-extrabold text-blue-600">{filteredProducts.length}</span>
-          </div>
-          <div className="bg-white/80 border border-slate-100 rounded-xl px-4 py-2.5 text-center">
-            <span className="block text-[10px] text-slate-400 font-semibold uppercase">Categorías</span>
-            <span className="text-sm font-extrabold text-[#0F2C59]">4</span>
-          </div>
-          <button 
-            onClick={handleResetFilters}
-            className="bg-blue-50 hover:bg-blue-100 text-blue-600 p-3 rounded-xl border border-blue-100/50 transition-colors cursor-pointer"
-            title="Limpiar filtros"
+        {/* Mobile Filter Toggle Button */}
+        <button
+          onClick={() => setShowMobileFilters(!showMobileFilters)}
+          className="lg:hidden flex items-center gap-2 bg-white/70 backdrop-blur-xl border border-white/90 shadow-sm text-slate-700 px-3.5 py-2 rounded-2xl text-xs font-bold cursor-pointer hover:bg-white"
+        >
+          <SlidersHorizontal className="w-4 h-4 text-blue-600" />
+          <span>Filtros</span>
+          {activeFiltersCount > 0 && (
+            <span className="bg-blue-600 text-white text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center font-extrabold">
+              {activeFiltersCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Horizontal Category Quick-Chips (Mobile & Tablet) */}
+      <div className="lg:hidden mb-5 overflow-x-auto no-scrollbar flex items-center gap-2 pb-1 -mx-4 px-4">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => handleCategoryChange(cat.id)}
+            className={`whitespace-nowrap text-xs py-2 px-3.5 rounded-2xl font-bold transition-all shrink-0 cursor-pointer ${
+              filters.category === cat.id
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+                : 'bg-white/60 backdrop-blur-xl text-slate-700 border border-white/80 hover:bg-white'
+            }`}
           >
-            <RefreshCw className="w-4.5 h-4.5" />
+            {cat.name}
           </button>
-        </div>
+        ))}
       </div>
 
       {/* Main Grid Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         
-        {/* LEFT COLUMN: FILTER SIDEBAR (Defined Glassmorphism) */}
-        <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-[120px]">
+        {/* LEFT COLUMN: FILTER SIDEBAR (Desktop sticky + Mobile Collapsible Drawer) */}
+        <aside className={`lg:col-span-3 space-y-4 lg:space-y-6 lg:sticky lg:top-[120px] ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
           
+          {/* Mobile Filter Header with close button */}
+          <div className="lg:hidden flex items-center justify-between bg-white/90 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm">
+            <span className="text-xs font-extrabold text-[#0F2C59] uppercase tracking-wider">Filtros del Catálogo</span>
+            <button 
+              onClick={() => setShowMobileFilters(false)}
+              className="p-1 text-slate-400 hover:text-slate-700 font-bold text-xs"
+            >
+              ✕ Cerrar
+            </button>
+          </div>
+
           {/* Search box within Tienda */}
-          <div className="glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/50 space-y-3 shadow-sm">
             <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-2">
               <Search className="w-4 h-4 text-blue-500" />
               <span>Búsqueda Rápida</span>
@@ -207,8 +233,8 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
             </div>
           </div>
 
-          {/* Categories Filter Panel */}
-          <div className="glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
+          {/* Categories Filter Panel (Desktop) */}
+          <div className="hidden lg:block glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
             <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
               Categorías
             </h3>
@@ -233,7 +259,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
           </div>
 
           {/* Price Range Filter Panel */}
-          <div className="glass-card rounded-2xl p-5 border border-white/50 space-y-4 shadow-sm">
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/50 space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
                 Presupuesto Máx
@@ -257,34 +283,8 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
             </div>
           </div>
 
-          {/* Brands Filter Panel */}
-          <div className="glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
-            <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-              Marcas autorizadas
-            </h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
-              {BRANDS.map(brandName => {
-                const isChecked = filters.brand.includes(brandName);
-                return (
-                  <label 
-                    key={brandName}
-                    className="flex items-center gap-2.5 text-xs font-semibold text-slate-600 hover:text-slate-950 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleBrandToggle(brandName)}
-                      className="w-4 h-4 text-blue-600 border-slate-200 rounded focus:ring-blue-500 cursor-pointer accent-blue-600"
-                    />
-                    <span>{brandName}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Availability Filter Panel */}
-          <div className="glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/50 space-y-3 shadow-sm">
             <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
               Disponibilidad
             </h3>
@@ -313,27 +313,38 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
             </div>
           </div>
 
+          {/* Reset Filters CTA in Sidebar */}
+          {activeFiltersCount > 0 && (
+            <button
+              onClick={handleResetFilters}
+              className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+              <span>Limpiar Filtros</span>
+            </button>
+          )}
+
         </aside>
 
         {/* RIGHT COLUMN: SEARCH BAR, SORTING & PRODUCTS GRID */}
-        <main className="lg:col-span-9 space-y-6">
+        <main className="lg:col-span-9 space-y-4 sm:space-y-6">
           
           {/* Sorter and summary header bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
-            <div className="text-xs font-semibold text-slate-500">
-              Mostrando <strong className="text-slate-800">{displayedProducts.length}</strong> de <strong className="text-slate-800">{filteredProducts.length}</strong> productos disponibles
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div className="text-[11px] sm:text-xs font-semibold text-slate-500">
+              Mostrando <strong className="text-slate-800">{displayedProducts.length}</strong> de <strong className="text-slate-800">{filteredProducts.length}</strong> productos
             </div>
 
             {/* Sorting selectors */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between sm:justify-end gap-2">
               <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
                 <ArrowUpDown className="w-3.5 h-3.5" />
-                <span>Ordenar por:</span>
+                <span className="hidden sm:inline">Ordenar por:</span>
               </span>
               <select
                 value={filters.sortBy}
                 onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
-                className="text-xs bg-[#F8FAFC] border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-slate-700 cursor-pointer"
+                className="text-xs bg-[#F8FAFC] border border-slate-200 rounded-xl px-2.5 py-1.5 sm:py-2 focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-slate-700 cursor-pointer"
               >
                 <option value="popular">Popularidad y Rating</option>
                 <option value="price-asc">Precio: Menor a Mayor</option>
@@ -345,9 +356,9 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
 
           {/* Empty Results state */}
           {filteredProducts.length === 0 && (
-            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/60 shadow-sm">
-              <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Info className="w-8 h-8" />
+            <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-slate-200/60 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Info className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-800 mb-1">No se encontraron productos</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto mb-6">
@@ -362,8 +373,8 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
             </div>
           )}
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Products Grid - 2 columns on mobile, 3 on xl */}
+          <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
             {displayedProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -376,7 +387,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
 
           {/* Load More Button for infinite scroll look and feel */}
           {filteredProducts.length > displayedProducts.length && (
-            <div className="flex justify-center pt-6">
+            <div className="flex justify-center pt-4 sm:pt-6">
               <button
                 onClick={() => setVisibleCount(prev => prev + 6)}
                 className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-blue-600 font-bold text-xs px-6 py-3.5 rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"

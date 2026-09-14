@@ -372,30 +372,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg md:text-xl font-extrabold tracking-tight">Panel de Administración</h2>
-                <span className="bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Supabase Live
-                </span>
-              </div>
+              <h2 className="text-lg md:text-xl font-extrabold tracking-tight">Panel de Administración</h2>
               <p className="text-xs text-blue-200">
-                Gestión de catálogo, imágenes web, precios e inventario en tiempo real
+                Gestión de catálogo, productos, imágenes, precios y categorías
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleRefreshFromDB}
-              disabled={loading}
-              className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold border border-white/15"
-              title="Sincronizar con Supabase"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Sincronizar BD</span>
-            </button>
-
             <button
               onClick={onClose}
               className="p-2.5 bg-white/10 hover:bg-red-500/80 text-white rounded-xl transition-all cursor-pointer border border-white/15"
@@ -452,7 +436,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="relative flex-1">
                   <input
                     type="text"
-                    placeholder="Buscar producto por nombre, marca..."
+                    placeholder="Buscar producto por nombre o categoría..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full text-xs bg-white/70 backdrop-blur-xl border border-white/90 rounded-xl pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-medium shadow-[inset_0_1px_2px_rgba(255,255,255,0.8)]"
@@ -490,8 +474,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <div>
                       {/* Top Badges & Actions */}
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-[10px] font-mono font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
-                          {product.brand}
+                        <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-md border border-blue-100">
+                          {product.category}
                         </span>
                         
                         <div className="flex items-center gap-1">
@@ -712,8 +696,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             {/* Modal Form */}
             <form onSubmit={handleSaveProduct} className="p-6 md:p-8 overflow-y-auto space-y-5 flex-1 text-xs">
               
-              {/* Row 1: ID, Brand, Category */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Row 1: ID and Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">ID Único (Slug)</label>
                   <input
@@ -723,18 +707,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     onChange={(e) => setProductForm({ ...productForm, id: e.target.value })}
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-xs text-slate-700"
                     placeholder="nsk-ti-max-z95l"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Marca / Fabricante</label>
-                  <input
-                    type="text"
-                    value={productForm.brand}
-                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    className="w-full p-2.5 border border-slate-200 rounded-xl font-semibold text-slate-800"
-                    placeholder="NSK, 3M, Woodpecker, Kerr..."
                     required
                   />
                 </div>

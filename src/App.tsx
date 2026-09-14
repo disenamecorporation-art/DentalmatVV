@@ -258,7 +258,7 @@ export default function App() {
             <div className="w-full md:w-1/2 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
                 <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wider">
-                  {selectedProduct.brand}
+                  {selectedProduct.category}
                 </span>
                 <h3 className="text-xl font-bold text-slate-900 leading-tight">
                   {selectedProduct.name}
