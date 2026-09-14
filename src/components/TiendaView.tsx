@@ -22,7 +22,6 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
     searchQuery: searchFilter || '',
     category: 'Todos',
     brand: [],
-    priceRange: [0, 1500000],
     availability: [],
     sortBy: 'popular'
   });
@@ -61,19 +60,12 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
     });
   };
 
-  // Handle slider changes
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    setFilters(prev => ({ ...prev, priceRange: [0, value] }));
-  };
-
   // Reset all filters
   const handleResetFilters = () => {
     setFilters({
       searchQuery: '',
       category: 'Todos',
       brand: [],
-      priceRange: [0, 1500000],
       availability: [],
       sortBy: 'popular'
     });
@@ -111,19 +103,14 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
         if (!filters.brand.includes(product.brand)) return false;
       }
 
-      // 4. Price range limit
-      if (product.price < filters.priceRange[0] || product.price > filters.priceRange[1]) {
-        return false;
-      }
-
-      // 5. Availability status
+      // 4. Availability status
       if (filters.availability.length > 0) {
         if (!filters.availability.includes(product.availability)) return false;
       }
 
       return true;
     }).sort((a, b) => {
-      // 6. Sorting configuration
+      // 5. Sorting configuration
       if (filters.sortBy === 'price-asc') {
         return a.price - b.price;
       }
@@ -255,31 +242,6 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
                   )}
                 </button>
               ))}
-            </div>
-          </div>
-
-          {/* Price Range Filter Panel */}
-          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/50 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-                Presupuesto Máx
-              </h3>
-              <span className="text-xs font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                $ {filters.priceRange[1].toLocaleString('es-CL')}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="5000"
-              max="1500000"
-              step="5000"
-              value={filters.priceRange[1]}
-              onChange={handlePriceChange}
-              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-            />
-            <div className="flex justify-between text-[10px] text-slate-400 font-semibold">
-              <span>$ 5.000</span>
-              <span>$ 1.500.000+</span>
             </div>
           </div>
 

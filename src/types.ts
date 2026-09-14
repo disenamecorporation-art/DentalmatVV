@@ -26,7 +26,7 @@ export interface FilterState {
   searchQuery: string;
   category: string;
   brand: string[];
-  priceRange: [number, number];
+  priceRange?: [number, number];
   availability: string[];
   sortBy: 'price-asc' | 'price-desc' | 'popular' | 'novedad';
 }
