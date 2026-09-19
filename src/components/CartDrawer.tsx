@@ -1,5 +1,5 @@
 import React from 'react';
-import { CartItem, Product } from '../types';
+import { CartItem, Product, SiteContent } from '../types';
 import { X, Minus, Plus, ShoppingBag, Trash2, CheckCircle, ArrowRight } from 'lucide-react';
 import { ProductSVG } from './ProductSVG';
 import { getSupabase } from '../lib/supabase';
@@ -11,6 +11,7 @@ interface CartDrawerProps {
   onUpdateQuantity: (productId: string, delta: number) => void;
   onRemoveItem: (productId: string) => void;
   onClearCart: () => void;
+  siteContent?: SiteContent;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -19,7 +20,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   cartItems,
   onUpdateQuantity,
   onRemoveItem,
-  onClearCart
+  onClearCart,
+  siteContent
 }) => {
   const [checkoutStep, setCheckoutStep] = React.useState<'cart' | 'checkout-success'>('cart');
   const [formData, setFormData] = React.useState({
@@ -98,7 +100,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     // Encode text and redirect to whatsapp
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/584144873395?text=${encodedMessage}`;
+    const baseWhatsapp = siteContent?.footer_whatsapp_link || 'https://wa.me/584144873395';
+    // Ensure format is correct for wa.me URL with text parameter
+    const whatsappUrl = `${baseWhatsapp.includes('?') ? baseWhatsapp : baseWhatsapp}?text=${encodedMessage}`;
 
     // Redirect to whatsapp
     const a = document.createElement('a');

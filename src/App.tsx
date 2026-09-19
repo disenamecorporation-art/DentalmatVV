@@ -225,6 +225,7 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        siteContent={siteContent}
       />
 
       {/* 4. Product Quick-View Detailed Modal */}

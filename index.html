@@ -1,23 +1,6 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <script>
-      // Safe fallback for sandboxed environments or extensions where window.fetch is getter-only and throws TypeError on assignment
-      (function() {
-        try {
-          const originalFetch = window.fetch;
-          if (originalFetch) {
-            Object.defineProperty(window, 'fetch', {
-              value: originalFetch,
-              writable: true,
-              configurable: true
-            });
-          }
-        } catch (e) {
-          // Silent catch to prevent errors in non-configurable environments
-        }
-      })();
-    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DentalMatVV | Materiales y Equipamiento Dental Premium</title>
