@@ -320,7 +320,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>Envío</span>
-                  <span className="text-emerald-600 font-semibold">¡Bonificado gratis!</span>
+                  <span className="text-slate-600 font-medium">Por coordinar</span>
                 </div>
                 <div className="flex justify-between text-sm font-bold text-slate-800 pt-2 border-t border-slate-200/60">
                   <span>Total Estimado</span>
