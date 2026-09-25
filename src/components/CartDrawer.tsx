@@ -100,7 +100,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     // Encode text and redirect to whatsapp
     const encodedMessage = encodeURIComponent(message);
-    const baseWhatsapp = siteContent?.footer_whatsapp_link || 'https://wa.me/584144873395';
+    const baseWhatsapp = siteContent?.footer_whatsapp_link || 'https://wa.me/584220583339';
     // Ensure format is correct for wa.me URL with text parameter
     const whatsappUrl = `${baseWhatsapp.includes('?') ? baseWhatsapp : baseWhatsapp}?text=${encodedMessage}`;
 

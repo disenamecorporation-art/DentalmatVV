@@ -371,7 +371,7 @@ export default function App() {
                   <li className="flex items-center gap-2.5">
                     <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
                     <a 
-                      href={siteContent.footer_whatsapp_link || `https://wa.me/584144873395`} 
+                      href={siteContent.footer_whatsapp_link || `https://wa.me/584220583339`} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="hover:text-emerald-300 font-semibold text-slate-300"

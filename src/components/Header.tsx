@@ -353,7 +353,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Direct WhatsApp Callout in Mobile Menu */}
             <div className="pt-2 border-t border-slate-200/80">
               <a
-                href="https://wa.me/584144873395"
+                href="https://wa.me/584220583339"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"

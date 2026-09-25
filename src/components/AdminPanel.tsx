@@ -1091,7 +1091,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       value={siteForm.footer_whatsapp_link}
                       onChange={(e) => setSiteForm({ ...siteForm, footer_whatsapp_link: e.target.value })}
                       className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono text-emerald-700"
-                      placeholder="https://wa.me/584144873395"
+                      placeholder="https://wa.me/584220583339"
                     />
                   </div>
                 </div>
