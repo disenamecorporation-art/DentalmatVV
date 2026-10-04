@@ -173,7 +173,7 @@ INSERT INTO public.site_settings (id, content, updated_at) VALUES
   "footer_address": "Urbanización valle lindo, calle principal sector 2, al lado del C.E.I.P Los Niños del Libertador, municipio Santiago mariño, Turmero, Edo. Aragua, Venezuela.",
   "footer_whatsapp": "+58 422-0583339 (WhatsApp)",
   "footer_whatsapp_link": "https://wa.me/584220583339",
-  "footer_office_phone": "+58 244 661 1090 (Oficina)",
+  "footer_office_phone": "+58 422 0583339 (Atención Directa)",
   "footer_email": "ventas@dentalmatvv.com",
   "footer_credits": "Hecho por Legaint Corporation",
   "social_instagram": "https://instagram.com/dentalmatvv",

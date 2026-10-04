@@ -359,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
                 className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 transition-all"
               >
                 <Phone className="w-4 h-4 text-emerald-600" />
-                <span>Asesoría Directa por WhatsApp</span>
+                <span>Asesoría por WhatsApp (0422-0583339)</span>
               </a>
             </div>
 

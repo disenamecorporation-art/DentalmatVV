@@ -308,18 +308,27 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Add to cart action */}
-              <div className="pt-4 flex gap-3">
+              {/* Add to cart and WhatsApp consult actions */}
+              <div className="pt-4 flex flex-col sm:flex-row gap-2.5">
                 <button
                   onClick={() => {
                     handleAddToCart(selectedProduct);
                     setSelectedProduct(null);
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   <span>Añadir al Carrito</span>
                 </button>
+                <a
+                  href={`https://wa.me/584220583339?text=${encodeURIComponent(`Hola DentalMatVV! Deseo información y disponibilidad de: *${selectedProduct.name}* (Precio: $${(selectedProduct.price / 1000).toFixed(2)} USD)`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
               </div>
 
             </div>
@@ -434,6 +443,27 @@ export default function App() {
         onCategoriesUpdated={setCategories}
         onSiteContentUpdated={setSiteContent}
       />
+
+      {/* 8. Floating WhatsApp Quick Action Button */}
+      <a
+        href={siteContent.footer_whatsapp_link || 'https://wa.me/584220583339'}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-40 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white p-3.5 sm:px-4 sm:py-3 rounded-full shadow-2xl flex items-center gap-2.5 transition-all group border-2 border-white/80 hover:shadow-emerald-500/30 cursor-pointer"
+        aria-label="Contactar por WhatsApp al 0422-0583339"
+        title="WhatsApp DentalMatVV: 0422-0583339"
+      >
+        <div className="relative">
+          <Phone className="w-5 h-5 text-white" />
+          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+          </span>
+        </div>
+        <span className="hidden sm:inline font-bold text-xs tracking-wide">
+          WhatsApp 0422-0583339
+        </span>
+      </a>
 
     </div>
   );

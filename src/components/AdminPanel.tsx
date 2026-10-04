@@ -1104,6 +1104,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       value={siteForm.footer_office_phone}
                       onChange={(e) => setSiteForm({ ...siteForm, footer_office_phone: e.target.value })}
                       className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
+                      placeholder="+58 422 0583339"
                     />
                   </div>
                   <div>
