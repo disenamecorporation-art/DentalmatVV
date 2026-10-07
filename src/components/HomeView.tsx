@@ -1,27 +1,47 @@
 import React from 'react';
 import { Product, SiteContent, DEFAULT_SITE_CONTENT } from '../types';
+import { CategoryItem } from '../lib/supabase';
 import { ProductCard } from './ProductCard';
 import { ProductSVG } from './ProductSVG';
-import { Sparkles, ArrowRight, ShieldCheck, Truck, MessageSquare, Check } from 'lucide-react';
+import { Sparkles, ArrowRight, ShieldCheck, Truck, MessageSquare, Check, Tag, Layers } from 'lucide-react';
+import { CATEGORIES } from '../data';
 
 interface HomeViewProps {
   products: Product[];
+  categories?: CategoryItem[];
   siteContent?: SiteContent;
   onAddToCart: (product: Product) => void;
   onChangeTab: (tab: 'home' | 'tienda' | 'login') => void;
   onSelectProduct: (product: Product) => void;
+  onSelectCategory?: (categoryId: string) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   products,
+  categories,
   siteContent = DEFAULT_SITE_CONTENT,
   onAddToCart,
   onChangeTab,
-  onSelectProduct
+  onSelectProduct,
+  onSelectCategory
 }) => {
   const content = siteContent || DEFAULT_SITE_CONTENT;
   const featured = products.filter(p => p.isFeatured);
   const trending = products.filter(p => p.isTrending);
+
+  // Dynamic Category list merging database categories or fallback (excluding 'Todos')
+  const displayCategories = React.useMemo(() => {
+    const list = (categories && categories.length > 0) ? categories : CATEGORIES;
+    return list.filter(c => c.id !== 'Todos' && c.id !== 'todos');
+  }, [categories]);
+
+  const handleCategoryClick = (catId: string) => {
+    if (onSelectCategory) {
+      onSelectCategory(catId);
+    } else {
+      onChangeTab('tienda');
+    }
+  };
 
   return (
     <div className="w-full">
@@ -156,6 +176,65 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
       </section>
+
+      {/* SECTION 2.5: DYNAMIC CATEGORY EXPLORATION BAR */}
+      {displayCategories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 md:px-6 pt-10 sm:pt-14">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-600" />
+              <h3 className="text-xs sm:text-sm font-extrabold text-[#0F2C59] uppercase tracking-wider">
+                Explorar por Especialidad
+              </h3>
+            </div>
+            <button
+              onClick={() => onChangeTab('tienda')}
+              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+            >
+              <span>Ver todas</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 sm:gap-4">
+            {displayCategories.map((cat) => {
+              const count = products.filter(p => {
+                const prodCat = (p.category || '').toLowerCase().trim();
+                const catId = cat.id.toLowerCase().trim();
+                const catName = cat.name.toLowerCase().trim();
+                return prodCat === catId || prodCat === catName || (catName && prodCat.includes(catName));
+              }).length;
+
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  className="group bg-white/70 hover:bg-white backdrop-blur-xl border border-white/80 hover:border-blue-200/80 rounded-2xl p-4 sm:p-5 shadow-[0_4px_20px_rgba(15,23,89,0.04)] hover:shadow-[0_10px_30px_rgba(0,102,255,0.08)] transition-all duration-300 cursor-pointer flex flex-col justify-between hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                      <Tag className="w-4.5 h-4.5" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-400 bg-slate-100 group-hover:bg-blue-50 group-hover:text-blue-600 px-2 py-0.5 rounded-full transition-colors">
+                      {count} {count === 1 ? 'prod' : 'prods'}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">
+                      {cat.name}
+                    </h4>
+                    {cat.description && (
+                      <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                        {cat.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* SECTION 3: FEATURED PRODUCTS */}
       <section id="productos-destacados-section" className="max-w-7xl mx-auto px-4 md:px-6 py-10 sm:py-14">

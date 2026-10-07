@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Product, FilterState } from '../types';
+import { CategoryItem } from '../lib/supabase';
 import { ProductCard } from './ProductCard';
-import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, RefreshCw, Star, Info } from 'lucide-react';
+import { Search, SlidersHorizontal, ArrowUpDown, ChevronDown, RefreshCw, Star, Info, Tag } from 'lucide-react';
 import { CATEGORIES, BRANDS } from '../data';
 
 interface TiendaViewProps {
   products: Product[];
+  categories?: CategoryItem[];
   onAddToCart: (product: Product) => void;
   onSelectProduct: (product: Product) => void;
   searchFilter: string;
@@ -13,6 +15,7 @@ interface TiendaViewProps {
 
 export const TiendaView: React.FC<TiendaViewProps> = ({
   products,
+  categories,
   onAddToCart,
   onSelectProduct,
   searchFilter
@@ -27,6 +30,18 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
   });
 
   const [visibleCount, setVisibleCount] = React.useState(8);
+
+  // Dynamic Category list merging database categories or fallback
+  const categoryList = React.useMemo(() => {
+    if (categories && categories.length > 0) {
+      const hasTodos = categories.some(c => c.id === 'Todos' || c.id === 'todos' || c.name.toLowerCase().includes('todas'));
+      if (!hasTodos) {
+        return [{ id: 'Todos', name: 'Todas las Categorías' }, ...categories];
+      }
+      return categories;
+    }
+    return CATEGORIES;
+  }, [categories]);
 
   // Synchronize when the user types in the Header's search bar
   React.useEffect(() => {
@@ -93,9 +108,20 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
         if (!matchesQuery) return false;
       }
 
-      // 2. Category
+      // 2. Dynamic Category matching
       if (filters.category !== 'Todos') {
-        if (product.category !== filters.category) return false;
+        const selectedCatObj = categoryList.find(c => c.id === filters.category);
+        const selectedCatName = selectedCatObj?.name?.toLowerCase().trim();
+        const selectedCatId = filters.category.toLowerCase().trim();
+        const prodCat = (product.category || '').toLowerCase().trim();
+
+        const matchesCat = 
+          prodCat === selectedCatId || 
+          prodCat === selectedCatName ||
+          (selectedCatName && (prodCat.includes(selectedCatName) || selectedCatName.includes(prodCat))) ||
+          (selectedCatId && (prodCat.includes(selectedCatId) || selectedCatId.includes(prodCat)));
+
+        if (!matchesCat) return false;
       }
 
       // 3. Brands list
@@ -124,7 +150,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
       // 'popular' rating sort
       return b.rating - a.rating;
     });
-  }, [products, filters]);
+  }, [products, filters, categoryList]);
 
   // Paginated/Sliced subset
   const displayedProducts = filteredProducts.slice(0, visibleCount);
@@ -163,7 +189,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
 
       {/* Horizontal Category Quick-Chips (Mobile & Tablet) */}
       <div className="lg:hidden mb-5 overflow-x-auto no-scrollbar flex items-center gap-2 pb-1 -mx-4 px-4">
-        {CATEGORIES.map(cat => (
+        {categoryList.map(cat => (
           <button
             key={cat.id}
             onClick={() => handleCategoryChange(cat.id)}
@@ -220,16 +246,20 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
             </div>
           </div>
 
-          {/* Categories Filter Panel (Desktop) */}
-          <div className="hidden lg:block glass-card rounded-2xl p-5 border border-white/50 space-y-3 shadow-sm">
-            <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">
-              Categorías
+          {/* Categories Filter Panel (Desktop & Mobile Drawer) */}
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-white/50 space-y-3 shadow-sm">
+            <h3 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Tag className="w-3.5 h-3.5 text-blue-600" />
+              <span>Categorías</span>
             </h3>
             <div className="flex flex-col gap-1.5">
-              {CATEGORIES.map(cat => (
+              {categoryList.map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => handleCategoryChange(cat.id)}
+                  onClick={() => {
+                    handleCategoryChange(cat.id);
+                    setShowMobileFilters(false);
+                  }}
                   className={`w-full text-left text-xs py-2 px-3 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
                     filters.category === cat.id
                       ? 'bg-blue-600 text-white font-bold shadow-sm'

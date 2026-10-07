@@ -36,7 +36,7 @@ export const PRODUCTS: Product[] = [
     name: 'Filtek Z350 XT Resina Inteligente',
     brand: '3M',
     price: 59900,
-    category: 'Materiales',
+    category: 'Insumos',
     image: 'resina',
     description: 'Resina compuesta restauradora universal con nanotecnología verdadera. Ofrece una retención de brillo excelente, pulido excepcional y resistencia superior al desgaste.',
     specs: ['Jeringa de 4g - Color A2', 'Nanotecnología exclusiva de 3M', 'Estética natural insuperable', 'Baja contracción de polimerización'],
@@ -79,7 +79,7 @@ export const PRODUCTS: Product[] = [
     name: 'Resina Filtek Bulk Fill Posterior',
     brand: '3M',
     price: 72000,
-    category: 'Materiales',
+    category: 'Insumos',
     image: 'resina_bulk',
     description: 'Restaurador posterior monoincremento de hasta 5 mm de profundidad. Colocación rápida y fácil que ahorra tiempo de sillón con un acabado resistente al desgaste.',
     specs: ['Profundidad de curado de 5mm', 'Excelente adaptación cavitaria', 'Alta resistencia a la fractura', 'Jeringa de 4g'],
@@ -107,7 +107,7 @@ export const PRODUCTS: Product[] = [
     name: 'Silicona de Adición Putty Hydrorise',
     brand: 'Zhermack',
     price: 125000,
-    category: 'Materiales',
+    category: 'Insumos',
     image: 'silicona',
     description: 'Silicona de adición hiperhidrofílica para impresiones de alta precisión. Máxima fidelidad de detalles clínicos con tiempos de fraguado óptimos.',
     specs: ['Excelente recuperación elástica', 'Alta resistencia al desgarro', 'Sabor a menta agradable', 'Kit de Base + Catalizador (300ml c/u)'],
@@ -122,7 +122,7 @@ export const PRODUCTS: Product[] = [
     name: 'Discos de Pulido OneGloss Set',
     brand: 'Coltene',
     price: 49000,
-    category: 'Materiales',
+    category: 'Insumos',
     image: 'pulido',
     description: 'Copas, minicopas y puntas de silicona impregnadas de óxido de aluminio para el acabado y pulido en un solo paso de todo tipo de composites.',
     specs: ['Sistema de un solo paso', 'Sin pasta de pulido necesaria', 'Ajuste de presión controla el acabado', 'Caja de 60 piezas'],
@@ -161,7 +161,7 @@ export const PRODUCTS: Product[] = [
     name: 'Pasta Profiláctica Clinpro Prophy',
     brand: '3M',
     price: 42000,
-    category: 'Materiales',
+    category: 'Insumos',
     image: 'clinpro',
     description: 'Pasta de profilaxis dental que contiene fluoruro y fosfato de calcio amorfo funcionalizado. Limpieza y pulido superiores que reducen la sensibilidad.',
     specs: ['Sabor a cereza refrescante', 'Tecnología TCP exclusiva de 3M', 'Grano medio-fino variable', 'Pote de 340g'],
@@ -175,7 +175,7 @@ export const CATEGORIES = [
   { id: 'Todos', name: 'Todas las Categorías' },
   { id: 'Instrumental', name: 'Instrumental de Mano' },
   { id: 'Equipamiento', name: 'Equipamiento Clínico' },
-  { id: 'Materiales', name: 'Materiales Consumibles' }
+  { id: 'Insumos', name: 'Insumos Odontológicos' }
 ];
 
 export const BRANDS = ['NSK', '3M', 'Woodpecker', 'Ivoclar', 'Zhermack', 'Coltene'];

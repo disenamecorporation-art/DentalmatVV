@@ -175,6 +175,17 @@ export default function App() {
     setActiveTab('tienda');
   };
 
+  // Handle category shortcut selection
+  const handleCategorySelect = (catId: string) => {
+    setActiveTab('tienda');
+    const catObj = categories.find(c => c.id === catId);
+    if (catObj && catObj.id !== 'Todos' && catObj.id !== 'todos') {
+      setSearchFilter(catObj.name);
+    } else {
+      setSearchFilter('');
+    }
+  };
+
   // Helper formatting for currency (USD $ format - value divided by 1000 for realistic USD dental pricing)
   const formatPrice = (value: number) => {
     const usdValue = value / 1000;
@@ -189,6 +200,7 @@ export default function App() {
         activeTab={activeTab}
         onChangeTab={handleTabChange}
         cartItems={cartItems}
+        categories={categories}
         onToggleCart={() => setIsCartOpen(!isCartOpen)}
         onSearch={handleSearch}
         currentUser={currentUser}
@@ -200,16 +212,19 @@ export default function App() {
         {activeTab === 'home' && (
           <HomeView
             products={products}
+            categories={categories}
             siteContent={siteContent}
             onAddToCart={handleAddToCart}
             onChangeTab={handleTabChange}
             onSelectProduct={setSelectedProduct}
+            onSelectCategory={handleCategorySelect}
           />
         )}
 
         {activeTab === 'tienda' && (
           <TiendaView
             products={products}
+            categories={categories}
             onAddToCart={handleAddToCart}
             onSelectProduct={setSelectedProduct}
             searchFilter={searchFilter}

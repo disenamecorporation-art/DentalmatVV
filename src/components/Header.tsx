@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActiveTab, CartItem } from '../types';
-import { UserProfile } from '../lib/supabase';
+import { UserProfile, CategoryItem } from '../lib/supabase';
 import { 
   Search, 
   User, 
@@ -13,19 +13,21 @@ import {
   Database, 
   Shield, 
   Menu, 
-  X,
-  Home,
-  Store,
-  Sparkles,
-  Phone,
-  Flame,
-  ChevronRight
+  X, 
+  Home, 
+  Store, 
+  Sparkles, 
+  Phone, 
+  Flame, 
+  ChevronRight,
+  Tag
 } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: ActiveTab;
   onChangeTab: (tab: ActiveTab) => void;
   cartItems: CartItem[];
+  categories?: CategoryItem[];
   onToggleCart: () => void;
   onSearch?: (query: string) => void;
   currentUser?: UserProfile | null;
@@ -36,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onChangeTab,
   cartItems,
+  categories,
   onToggleCart,
   onSearch,
   currentUser,
@@ -333,6 +336,27 @@ export const Header: React.FC<HeaderProps> = ({
                 <ChevronRight className="w-4 h-4 opacity-60" />
               </button>
             </div>
+
+            {/* Dynamic Categories Section in Mobile Menu */}
+            {categories && categories.length > 0 && (
+              <div className="pt-2 border-t border-slate-200/80">
+                <div className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-2 px-1">
+                  Categorías Odontológicas
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {categories.filter(c => c.id !== 'Todos' && c.id !== 'todos').map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => navigateTo('tienda', cat.name)}
+                      className="text-left text-xs font-bold p-2.5 bg-slate-100/70 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all flex items-center gap-1.5 truncate cursor-pointer text-slate-700"
+                    >
+                      <Tag className="w-3 h-3 text-blue-500 shrink-0" />
+                      <span className="truncate">{cat.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Admin Panel Quick Action on Mobile if Admin */}
             {currentUser?.role === 'admin' && (
