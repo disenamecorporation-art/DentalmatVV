@@ -75,6 +75,10 @@ export interface SiteContent {
   footer_email: string;
   footer_credits: string;
 
+  // Tasa de cambio del día (Bs. por USD)
+  exchange_rate: number;
+  exchange_rate_label: string;
+
   // Social Links
   social_instagram: string;
   social_facebook: string;
@@ -82,6 +86,10 @@ export interface SiteContent {
 }
 
 export const DEFAULT_SITE_CONTENT: SiteContent = {
+  // Tasa de cambio del día
+  exchange_rate: 45.00,
+  exchange_rate_label: "Tasa Oficial del Día (BCV)",
+
   hero_title_line1: "Equipamiento que eleva tu práctica.",
   hero_title_line2: "Resultados que inspiran confianza.",
   hero_description: "Instrumental, materiales y tecnología dental seleccionados por expertos, para expertos. Eleve el nivel de su clínica con la máxima precisión del mercado global.",

@@ -3,6 +3,7 @@ import { CartItem, Product, SiteContent } from '../types';
 import { X, Minus, Plus, ShoppingBag, Trash2, CheckCircle, ArrowRight } from 'lucide-react';
 import { ProductSVG } from './ProductSVG';
 import { getSupabase } from '../lib/supabase';
+import { formatUSD, formatVES } from '../lib/currency';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -34,34 +35,32 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   if (!isOpen) return null;
 
+  const exchangeRate = siteContent?.exchange_rate || 45;
   const totalAmount = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-
-  const formatPrice = (value: number) => {
-    const usdValue = value / 1000;
-    return `$${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
-  };
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Prepare payment method display name
     const payMethodsObj: { [key: string]: string } = {
-      pagomovil: 'PagoMóvil',
-      zelle: 'Zelle',
-      binance: 'Binance',
-      efectivo: 'Efectivo',
-      transferencia: 'Transferencia Bancaria'
+      pagomovil: 'PagoMóvil (Bs.)',
+      zelle: 'Zelle (USD)',
+      binance: 'Binance USDT',
+      efectivo: 'Efectivo Divisas ($)',
+      transferencia: 'Transferencia Bancaria (Bs.)'
     };
     const payMethodName = payMethodsObj[formData.payMethod] || formData.payMethod;
 
-    // Build cart items detailed text
+    // Build cart items detailed text with both USD and Bs.
     const itemsText = cartItems.map(item => {
       const productPriceUsd = item.product.price / 1000;
       const subtotalPriceUsd = productPriceUsd * item.quantity;
-      return `• ${item.product.name} (x${item.quantity}) - $${subtotalPriceUsd.toFixed(2)} USD`;
+      const itemSubtotalVes = formatVES(item.product.price * item.quantity, exchangeRate);
+      return `• ${item.product.name} (x${item.quantity}) - $${subtotalPriceUsd.toFixed(2)} USD / ${itemSubtotalVes}`;
     }).join('\n');
 
     const totalAmountUsd = totalAmount / 1000;
+    const totalAmountVes = formatVES(totalAmount, exchangeRate);
 
     // Optional: Save order to Supabase
     const sb = getSupabase();
@@ -79,23 +78,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           customer_name: formData.name,
           customer_phone: formData.phone,
           customer_address: formData.address || 'No especificada',
-          notes: `Método de pago: ${payMethodName}. Email: ${formData.email || 'N/A'}`
+          notes: `Método de pago: ${payMethodName}. Tasa: Bs. ${exchangeRate}. Email: ${formData.email || 'N/A'}`
         });
       } catch (err) {
         console.warn('Error saving order to Supabase:', err);
       }
     }
 
-    // Build gorgeous message
+    // Build gorgeous message with dual currency
     const message = `🦷 *NUEVO PEDIDO - DENTALMATVV* 🦷\n\n` +
       `👋 Hola, me gustaría confirmar mi pedido:\n\n` +
       `👤 *Cliente:* ${formData.name}\n` +
       `📞 *Teléfono:* ${formData.phone}\n` +
-      `✉️ *Email:* ${formData.email}\n` +
-      `📍 *Ubicación de entrega:* ${formData.address}\n\n` +
+      `✉️ *Email:* ${formData.email || 'No especificado'}\n` +
+      `📍 *Ubicación de entrega:* ${formData.address || 'A convenir'}\n\n` +
       `🛍️ *Detalle del Pedido:*\n${itemsText}\n\n` +
-      `💰 *Total:* $${totalAmountUsd.toFixed(2)} USD\n` +
-      `💳 *Método de Pago:* ${payMethodName}\n\n` +
+      `💵 *Total en USD:* $${totalAmountUsd.toFixed(2)} USD\n` +
+      `🇻🇪 *Total en Bolívares:* ${totalAmountVes}\n` +
+      `💳 *Método de Pago Seleccionado:* ${payMethodName}\n\n` +
       `🙏 Quedo atento/a para coordinar la entrega y el pago.`;
 
     // Encode text and redirect to whatsapp
@@ -196,9 +196,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       <h4 className="text-xs font-semibold text-slate-800 truncate">
                         {item.product.name}
                       </h4>
-                      <p className="text-xs font-bold text-slate-900 mt-1">
-                        {formatPrice(item.product.price)}
-                      </p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <span className="text-xs font-black text-slate-900">
+                          {formatUSD(item.product.price)}
+                        </span>
+                        <span className="text-[10px] font-extrabold text-amber-500 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                          {formatVES(item.product.price, exchangeRate)}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Quantity controls */}
@@ -301,10 +306,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                     <button
                       type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 mt-4 cursor-pointer"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all flex flex-col items-center justify-center gap-1 mt-4 cursor-pointer"
                     >
-                      <span>Confirmar Pedido ({formatPrice(totalAmount)})</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <div className="flex items-center gap-2">
+                        <span>Confirmar Pedido</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                      <span className="text-[11px] text-cyan-200 font-medium">
+                        {formatUSD(totalAmount)} • {formatVES(totalAmount, exchangeRate)}
+                      </span>
                     </button>
                   </form>
                 </div>
@@ -313,18 +323,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
             {/* Footer calculations if item present but not checkout yet */}
             {cartItems.length > 0 && (
-              <div className="p-5 bg-slate-50 border-t border-slate-100 space-y-3">
+              <div className="p-5 bg-slate-50 border-t border-slate-100 space-y-2.5">
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Subtotal</span>
-                  <span>{formatPrice(totalAmount)}</span>
+                  <span>Subtotal USD</span>
+                  <span className="font-semibold text-slate-700">{formatUSD(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Envío</span>
-                  <span className="text-slate-600 font-medium">Por coordinar</span>
+                  <span>Subtotal en Bolívares</span>
+                  <span className="font-bold text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-slate-800 pt-2 border-t border-slate-200/60">
-                  <span>Total Estimado</span>
-                  <span className="text-base text-blue-600">{formatPrice(totalAmount)}</span>
+                <div className="flex justify-between items-baseline pt-2 border-t border-slate-200/80">
+                  <div>
+                    <span className="text-xs font-extrabold text-slate-800 block">Total a Pagar</span>
+                    <span className="text-[10px] text-slate-400">Total en divisas y moneda nacional</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-base font-black text-[#0F2C59]">{formatUSD(totalAmount)}</div>
+                    <div className="text-xs font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -342,22 +358,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               Un asesor de ventas premium de <strong className="text-blue-600">DentalMatVV</strong> se pondrá en contacto al <strong>{formData.phone}</strong> para coordinar la entrega.
             </p>
 
-            <div className="w-full bg-white p-4 rounded-xl border border-slate-200/60 mb-6 text-left text-xs space-y-1.5">
+            <div className="w-full bg-white p-4 rounded-xl border border-slate-200/60 mb-6 text-left text-xs space-y-2">
               <div className="flex justify-between text-[11px] text-slate-400">
                 <span>ID Pedido:</span>
                 <span className="font-mono font-semibold text-slate-600">#DM-{Math.floor(100000 + Math.random() * 900000)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Total Facturado:</span>
-                <span className="font-bold text-slate-800">{formatPrice(totalAmount)}</span>
+              <div className="flex justify-between items-baseline">
+                <span className="text-slate-500">Total en Dólares ($):</span>
+                <span className="font-black text-slate-800">{formatUSD(totalAmount)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-baseline">
+                <span className="text-slate-500">Equivalente en Bs.:</span>
+                <span className="font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-100">
                 <span className="text-slate-500">Forma de pago:</span>
                 <span className="font-semibold text-blue-600">
-                  {formData.payMethod === 'pagomovil' ? 'PagoMóvil' : 
-                   formData.payMethod === 'zelle' ? 'Zelle' : 
-                   formData.payMethod === 'binance' ? 'Binance' : 
-                   formData.payMethod === 'efectivo' ? 'Efectivo' : 'Transferencia Bancaria'}
+                  {formData.payMethod === 'pagomovil' ? 'PagoMóvil (Bs.)' : 
+                   formData.payMethod === 'zelle' ? 'Zelle (USD)' : 
+                   formData.payMethod === 'binance' ? 'Binance USDT' : 
+                   formData.payMethod === 'efectivo' ? 'Efectivo Divisas ($)' : 'Transferencia Bancaria (Bs.)'}
                 </span>
               </div>
             </div>

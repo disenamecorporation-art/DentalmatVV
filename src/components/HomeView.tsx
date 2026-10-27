@@ -259,6 +259,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <ProductCard
               key={product.id}
               product={product}
+              exchangeRate={content.exchange_rate}
               onAddToCart={onAddToCart}
               onViewDetails={onSelectProduct}
             />
@@ -323,6 +324,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <ProductCard
               key={product.id}
               product={product}
+              exchangeRate={content.exchange_rate}
               onAddToCart={onAddToCart}
               onViewDetails={onSelectProduct}
             />

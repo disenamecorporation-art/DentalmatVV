@@ -145,6 +145,8 @@ ON CONFLICT (id) DO UPDATE SET
 -- Configuración de Textos del Sitio (Valores Iniciales)
 INSERT INTO public.site_settings (id, content, updated_at) VALUES
 ('main', '{
+  "exchange_rate": 45.00,
+  "exchange_rate_label": "Tasa Oficial del Día (BCV)",
   "hero_title_line1": "Equipamiento que eleva tu práctica.",
   "hero_title_line2": "Resultados que inspiran confianza.",
   "hero_description": "Encuentra instrumental rotatorio de precisión, equipamiento de última generación y consumibles esenciales de los fabricantes más prestigiosos del mundo para clínicas y profesionales exigentes.",

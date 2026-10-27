@@ -9,6 +9,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { AdminPanel } from './components/AdminPanel';
 import { ProductSVG } from './components/ProductSVG';
 import { SocialIcons } from './components/SocialIcons';
+import { formatUSD, formatVES } from './lib/currency';
 import { 
   fetchProductsFromDB, 
   fetchCategoriesFromDB,
@@ -201,6 +202,7 @@ export default function App() {
         onChangeTab={handleTabChange}
         cartItems={cartItems}
         categories={categories}
+        exchangeRate={siteContent.exchange_rate}
         onToggleCart={() => setIsCartOpen(!isCartOpen)}
         onSearch={handleSearch}
         currentUser={currentUser}
@@ -225,6 +227,7 @@ export default function App() {
           <TiendaView
             products={products}
             categories={categories}
+            exchangeRate={siteContent.exchange_rate}
             onAddToCart={handleAddToCart}
             onSelectProduct={setSelectedProduct}
             searchFilter={searchFilter}
@@ -297,15 +300,22 @@ export default function App() {
                   </span>
                 </div>
 
-                <div className="pt-2 flex items-baseline gap-2">
-                  <span className="text-2xl font-extrabold text-slate-900">
-                    {formatPrice(selectedProduct.price)}
-                  </span>
-                  {selectedProduct.originalPrice && (
-                    <span className="text-sm line-through text-slate-400">
-                      {formatPrice(selectedProduct.originalPrice)}
+                <div className="pt-2 flex flex-col gap-1.5">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-slate-900">
+                      {formatUSD(selectedProduct.price)}
                     </span>
-                  )}
+                    {selectedProduct.originalPrice && (
+                      <span className="text-sm line-through text-slate-400">
+                        {formatUSD(selectedProduct.originalPrice)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-base sm:text-lg font-black text-amber-500 bg-amber-50/80 px-3 py-1 rounded-xl border border-amber-200 shadow-xs flex items-center">
+                      {formatVES(selectedProduct.price, siteContent.exchange_rate)}
+                    </span>
+                  </div>
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed pt-2">
@@ -336,7 +346,7 @@ export default function App() {
                   <span>Añadir al Carrito</span>
                 </button>
                 <a
-                  href={`https://wa.me/584220583339?text=${encodeURIComponent(`Hola DentalMatVV! Deseo información y disponibilidad de: *${selectedProduct.name}* (Precio: $${(selectedProduct.price / 1000).toFixed(2)} USD)`)}`}
+                  href={`https://wa.me/584220583339?text=${encodeURIComponent(`Hola DentalMatVV! Deseo información y disponibilidad de: *${selectedProduct.name}* (Precio: ${formatUSD(selectedProduct.price)} / ${formatVES(selectedProduct.price, siteContent.exchange_rate)})`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"

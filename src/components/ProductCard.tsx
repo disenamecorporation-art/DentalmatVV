@@ -2,22 +2,23 @@ import React from 'react';
 import { Product } from '../types';
 import { ProductSVG } from './ProductSVG';
 import { Star, ShoppingCart, Heart } from 'lucide-react';
+import { formatUSD, formatVES } from '../lib/currency';
 
 interface ProductCardProps {
   product: Product;
+  exchangeRate?: number;
   onAddToCart: (product: Product) => void;
   onViewDetails?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewDetails }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ 
+  product, 
+  exchangeRate = 45, 
+  onAddToCart, 
+  onViewDetails 
+}) => {
   const [isHovered, setIsHovered] = React.useState(false);
   const [isLiked, setIsLiked] = React.useState(false);
-
-  // Formatting price to USD (value divided by 1000 for realistic USD dental pricing)
-  const formatPrice = (value: number) => {
-    const usdValue = value / 1000;
-    return `$${usdValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
-  };
 
   return (
     <div
@@ -118,13 +119,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
       <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100/80 flex items-center justify-between gap-1">
         <div className="flex flex-col min-w-0">
           {product.originalPrice && (
-            <span id={`orig-price-${product.id}`} className="text-[10px] sm:text-xs text-slate-400 line-through truncate">
-              {formatPrice(product.originalPrice)}
-            </span>
+            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-400 line-through truncate font-medium">
+              <span>{formatUSD(product.originalPrice)}</span>
+              <span>•</span>
+              <span>{formatVES(product.originalPrice, exchangeRate)}</span>
+            </div>
           )}
-          <span id={`price-${product.id}`} className="text-xs sm:text-base md:text-xl font-extrabold text-[#0F2C59] tracking-tight truncate">
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex flex-col">
+            <span id={`price-${product.id}`} className="text-xs sm:text-base font-black text-[#0F2C59] tracking-tight truncate leading-tight">
+              {formatUSD(product.price)}
+            </span>
+            <span className="text-[11px] sm:text-xs font-extrabold text-amber-500 tracking-tight truncate mt-0.5">
+              {formatVES(product.price, exchangeRate)}
+            </span>
+          </div>
         </div>
 
         <button

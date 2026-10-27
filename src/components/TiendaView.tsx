@@ -8,6 +8,7 @@ import { CATEGORIES, BRANDS } from '../data';
 interface TiendaViewProps {
   products: Product[];
   categories?: CategoryItem[];
+  exchangeRate?: number;
   onAddToCart: (product: Product) => void;
   onSelectProduct: (product: Product) => void;
   searchFilter: string;
@@ -16,6 +17,7 @@ interface TiendaViewProps {
 export const TiendaView: React.FC<TiendaViewProps> = ({
   products,
   categories,
+  exchangeRate = 45,
   onAddToCart,
   onSelectProduct,
   searchFilter
@@ -371,6 +373,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
               <ProductCard
                 key={product.id}
                 product={product}
+                exchangeRate={exchangeRate}
                 onAddToCart={onAddToCart}
                 onViewDetails={onSelectProduct}
               />

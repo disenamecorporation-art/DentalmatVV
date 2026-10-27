@@ -35,7 +35,10 @@ import {
   MapPin,
   Share2,
   Instagram,
-  Facebook
+  Facebook,
+  Coins,
+  Calculator,
+  TrendingUp
 } from 'lucide-react';
 import { TikTokIcon } from './SocialIcons';
 import { ProductSVG } from './ProductSVG';
@@ -63,7 +66,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   onCategoriesUpdated,
   onSiteContentUpdated
 }) => {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'content'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories' | 'rate' | 'content'>('products');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [savingContent, setSavingContent] = useState(false);
@@ -381,6 +384,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
+  const handleQuickUpdateRate = async (newRate: number, newLabel?: string) => {
+    if (isNaN(newRate) || newRate <= 0) {
+      showFeedback('error', 'Por favor ingresa una tasa válida mayor a 0');
+      return;
+    }
+    setSavingContent(true);
+    const updatedForm: SiteContent = {
+      ...siteForm,
+      exchange_rate: Number(newRate),
+      exchange_rate_label: newLabel || siteForm.exchange_rate_label || 'Tasa Oficial del Día (BCV)'
+    };
+    setSiteForm(updatedForm);
+    try {
+      if (isSupabaseConfigured()) {
+        await saveSiteContentToDB(updatedForm);
+      }
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(updatedForm);
+      }
+      showFeedback('success', `¡Tasa del día actualizada a Bs. ${Number(newRate).toFixed(2)} por USD y aplicada a toda la tienda!`);
+    } catch (err: any) {
+      console.error('Error guardando tasa:', err);
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(updatedForm);
+      }
+      showFeedback('error', 'Error al guardar en Supabase: ' + (err?.message || 'Error'));
+    } finally {
+      setSavingContent(false);
+    }
+  };
+
   const handleRefreshFromDB = async () => {
     setLoading(true);
     const freshProducts = await fetchProductsFromDB();
@@ -479,6 +513,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveTab('rate')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                activeTab === 'rate'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/25'
+                  : 'text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50'
+              }`}
+            >
+              <Coins className="w-3.5 h-3.5" />
+              <span>Tasa del Día (Bs.)</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('content')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'content'
@@ -489,6 +535,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <FileText className="w-3.5 h-3.5" />
               <span>Textos y Redes</span>
             </button>
+          </div>
+
+          {/* Quick Active Rate Indicator */}
+          <div 
+            onClick={() => setActiveTab('rate')}
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 rounded-xl text-xs cursor-pointer transition-all shadow-xs"
+            title="Clic para cambiar la tasa de cambio en Bolívares"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="text-slate-600 font-medium">Tasa actual:</span>
+            <strong className="text-emerald-800 font-black">Bs. {Number(siteForm.exchange_rate || 45).toFixed(2)}</strong>
+            <span className="text-[10px] text-emerald-600 font-bold bg-white px-1.5 py-0.5 rounded border border-emerald-200">Editar</span>
           </div>
 
           <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -746,6 +804,177 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
           )}
 
+          {/* TAB: TASA DE CAMBIO DEL DÍA (BOLÍVARES / USD) */}
+          {activeTab === 'rate' && (
+            <div className="space-y-6 max-w-4xl mx-auto pb-10">
+              
+              {/* Header Card */}
+              <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-[#0F2C59] text-white p-6 md:p-8 rounded-3xl shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
+                      <Coins className="w-6 h-6 text-emerald-300" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-black tracking-tight">Tasa de Cambio del Día</h3>
+                      <p className="text-emerald-100 text-xs mt-0.5">Define la tasa oficial en Bolívares (Bs.) por cada Dólar ($ USD) para toda la tienda</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right">
+                    <span className="text-[10px] text-emerald-200 block uppercase font-bold tracking-wider">Tasa Activa</span>
+                    <span className="text-xl md:text-2xl font-black text-white">
+                      Bs. {Number(siteForm.exchange_rate || 45).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Rate Settings Card */}
+              <div className="bg-white/90 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-md space-y-6">
+                <div className="border-b border-slate-100 pb-4">
+                  <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-600" />
+                    <span>Modificar Valor de la Tasa Oficial</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Este valor se aplicará de inmediato al catálogo de productos, carrito de compras y mensaje de pedido por WhatsApp.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left: Input for rate */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1.5 text-xs">
+                        Valor en Bolívares por 1 USD (Ej: 45.00 ó 46.50)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={siteForm.exchange_rate}
+                          onChange={(e) => setSiteForm({ ...siteForm, exchange_rate: parseFloat(e.target.value) || 0 })}
+                          className="w-full text-2xl font-black text-emerald-800 p-3.5 pl-12 bg-emerald-50/50 border-2 border-emerald-300 rounded-2xl focus:ring-4 focus:ring-emerald-200 focus:outline-none"
+                          placeholder="45.00"
+                          required
+                        />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-extrabold text-emerald-600 text-lg">
+                          Bs.
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quick increment/decrement buttons */}
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-semibold text-slate-500 block">Ajuste rápido:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { label: '-1.00', val: -1 },
+                          { label: '-0.50', val: -0.5 },
+                          { label: '+0.50', val: 0.5 },
+                          { label: '+1.00', val: 1 }
+                        ].map(item => (
+                          <button
+                            key={item.label}
+                            type="button"
+                            onClick={() => {
+                              const curr = Number(siteForm.exchange_rate) || 45;
+                              const updated = Math.max(1, curr + item.val);
+                              setSiteForm({ ...siteForm, exchange_rate: Number(updated.toFixed(2)) });
+                            }}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                          >
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Label for rate and explanation */}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="font-bold text-slate-700 block mb-1.5 text-xs">
+                        Etiqueta Informativa para los Clientes
+                      </label>
+                      <input
+                        type="text"
+                        value={siteForm.exchange_rate_label}
+                        onChange={(e) => setSiteForm({ ...siteForm, exchange_rate_label: e.target.value })}
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Tasa Oficial del Día (BCV)"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        Se muestra en la cabecera y en los detalles del producto.
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs text-slate-600 space-y-1">
+                      <strong className="text-slate-800 block">¿Cómo funciona la conversión?</strong>
+                      <p className="text-[11px] leading-relaxed">
+                        El precio base de cada producto está fijado en <strong>Dólares ($ USD)</strong>. Al cambiar esta tasa, el sistema multiplica automáticamente cada precio por este valor para reflejar el monto exacto en <strong>Bolívares (Bs.)</strong>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Rate Action Button */}
+                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>Se sincroniza automáticamente con la base de datos de la tienda.</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleQuickUpdateRate(siteForm.exchange_rate, siteForm.exchange_rate_label)}
+                    disabled={savingContent}
+                    className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{savingContent ? 'Guardando Tasa...' : 'Guardar y Aplicar Tasa a la Tienda'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Calculator Live Preview Card */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/90 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
+                    <Calculator className="w-4 h-4 text-blue-600" />
+                    <span>Simulador de Precios con la Tasa Actual</span>
+                  </h4>
+                  <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Tasa: Bs. {Number(siteForm.exchange_rate || 45).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { name: 'Consumibles', usd: 10 },
+                    { name: 'Resina 3M', usd: 59.90 },
+                    { name: 'Pieza de Mano', usd: 180 },
+                    { name: 'Turbina Dental', usd: 450 }
+                  ].map((demo, idx) => {
+                    const bsVal = demo.usd * (Number(siteForm.exchange_rate) || 45);
+                    return (
+                      <div key={idx} className="p-3 bg-slate-50 border border-slate-200/60 rounded-2xl text-center space-y-1">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase block truncate">{demo.name}</span>
+                        <span className="text-xs font-black text-slate-900 block">${demo.usd.toFixed(2)} USD</span>
+                        <span className="text-[11px] font-black text-emerald-700 block bg-white py-1 rounded-lg border border-emerald-100">
+                          Bs. {bsVal.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          )}
+
           {/* TAB 3: SITE CONTENT, FOOTER & SOCIAL LINKS */}
           {activeTab === 'content' && (
             <form onSubmit={handleSaveSiteContent} className="space-y-6 max-w-5xl mx-auto pb-10">
@@ -769,6 +998,54 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <Save className="w-4 h-4" />
                   <span>{savingContent ? 'Guardando...' : 'Guardar Cambios'}</span>
                 </button>
+              </div>
+
+              {/* CARD 0: TASA DE CAMBIO DEL DÍA (BOLÍVARES / USD) */}
+              <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-6 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-emerald-200/60">
+                  <div className="flex items-center gap-2.5">
+                    <Coins className="w-5 h-5 text-emerald-600" />
+                    <div>
+                      <h4 className="font-black text-slate-900 text-sm">Tasa de Cambio del Día (Bolívares / Dólar)</h4>
+                      <p className="text-[11px] text-slate-500">Calcula los precios en Bs. en tiempo real para todos los clientes</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black text-emerald-800 bg-emerald-100/80 px-3 py-1 rounded-full border border-emerald-300/80">
+                    Bs. {Number(siteForm.exchange_rate || 45).toFixed(2)} / USD
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Valor en Bolívares (Bs. por 1 USD)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={siteForm.exchange_rate}
+                        onChange={(e) => setSiteForm({ ...siteForm, exchange_rate: parseFloat(e.target.value) || 0 })}
+                        className="w-full p-2.5 pl-10 bg-white border border-emerald-300 rounded-xl font-black text-emerald-800 text-base focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        required
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-emerald-600 text-xs">
+                        Bs.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 text-xs">Etiqueta de la Tasa</label>
+                    <input
+                      type="text"
+                      value={siteForm.exchange_rate_label}
+                      onChange={(e) => setSiteForm({ ...siteForm, exchange_rate_label: e.target.value })}
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      placeholder="Tasa Oficial del Día (BCV)"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* CARD 1: HERO (CABECERA PRINCIPAL) */}
@@ -1345,6 +1622,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     />
                     <DollarSign className="w-4 h-4 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
                   </div>
+                  <div className="text-[11px] text-amber-500 font-extrabold mt-1">
+                    ≈ ${(productForm.price / 1000).toFixed(2)} USD • Bs. {(((productForm.price / 1000) * (siteForm.exchange_rate || 45))).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
                 </div>
 
                 <div>
@@ -1359,6 +1639,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     />
                     <DollarSign className="w-4 h-4 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
                   </div>
+                  {productForm.originalPrice > 0 && (
+                    <div className="text-[10px] text-slate-400 line-through mt-1">
+                      ${(productForm.originalPrice / 1000).toFixed(2)} USD • Bs. {(((productForm.originalPrice / 1000) * (siteForm.exchange_rate || 45))).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                  )}
                 </div>
 
                 <div>

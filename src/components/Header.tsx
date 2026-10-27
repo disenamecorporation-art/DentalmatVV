@@ -28,6 +28,7 @@ interface HeaderProps {
   onChangeTab: (tab: ActiveTab) => void;
   cartItems: CartItem[];
   categories?: CategoryItem[];
+  exchangeRate?: number;
   onToggleCart: () => void;
   onSearch?: (query: string) => void;
   currentUser?: UserProfile | null;
@@ -39,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   onChangeTab,
   cartItems,
   categories,
+  exchangeRate = 45,
   onToggleCart,
   onSearch,
   currentUser,
