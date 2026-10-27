@@ -145,13 +145,6 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </button>
 
-            <button
-              onClick={() => { onChangeTab('tienda'); onSearch?.('Equipamiento'); }}
-              className="hover:text-blue-600 hover:bg-white/60 transition-all text-slate-600 py-1 px-3 rounded-xl cursor-pointer"
-            >
-              Novedades
-            </button>
-
             {currentUser?.role === 'admin' && (
               <button
                 onClick={onOpenAdmin}

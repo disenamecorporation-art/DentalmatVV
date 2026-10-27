@@ -12,7 +12,7 @@ export interface Product {
   isTrending?: boolean;
   rating: number;
   reviewsCount: number;
-  availability: 'disponible' | 'oferta' | 'bajo_pedido';
+  availability: 'disponible' | 'oferta' | 'bajo_pedido' | 'agotado';
 }
 
 export interface CartItem {
@@ -78,6 +78,7 @@ export interface SiteContent {
   // Tasa de cambio del día (Bs. por USD)
   exchange_rate: number;
   exchange_rate_label: string;
+  show_bs_price: boolean;
 
   // Social Links
   social_instagram: string;
@@ -89,6 +90,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   // Tasa de cambio del día
   exchange_rate: 45.00,
   exchange_rate_label: "Tasa Oficial del Día (BCV)",
+  show_bs_price: true,
 
   hero_title_line1: "Equipamiento que eleva tu práctica.",
   hero_title_line2: "Resultados que inspiran confianza.",
@@ -120,7 +122,7 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   trending_section_subtitle: "Los consumibles y accesorios más comprados esta semana por laboratorios y odontólogos",
 
   footer_description: "Distribuidora líder de instrumental rotatorio, equipamiento clínico de vanguardia y consumibles odontológicos de máxima precisión.",
-  footer_address: "Urbanización valle lindo, calle principal sector 2, al lado del C.E.I.P Los Niños del Libertador, municipio Santiago mariño, Turmero, Edo. Aragua, Venezuela.",
+  footer_address: "Turmero, Aragua - RIF J508910818",
   footer_whatsapp: "+58 422-0583339 (WhatsApp)",
   footer_whatsapp_link: "https://wa.me/584220583339",
   footer_office_phone: "+58 422 0583339 (Atención Directa)",

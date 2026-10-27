@@ -9,6 +9,7 @@ interface TiendaViewProps {
   products: Product[];
   categories?: CategoryItem[];
   exchangeRate?: number;
+  showBsPrice?: boolean;
   onAddToCart: (product: Product) => void;
   onSelectProduct: (product: Product) => void;
   searchFilter: string;
@@ -18,6 +19,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
   products,
   categories,
   exchangeRate = 45,
+  showBsPrice = true,
   onAddToCart,
   onSelectProduct,
   searchFilter
@@ -286,7 +288,8 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
               {[
                 { id: 'disponible', label: 'En Stock / Entrega Inmediata' },
                 { id: 'oferta', label: 'En Oferta / Descuento especial' },
-                { id: 'bajo_pedido', label: 'Importación bajo pedido' }
+                { id: 'bajo_pedido', label: 'Importación bajo pedido' },
+                { id: 'agotado', label: 'Agotado (Sin Stock)' }
               ].map(item => {
                 const isChecked = filters.availability.includes(item.id);
                 return (
@@ -374,6 +377,7 @@ export const TiendaView: React.FC<TiendaViewProps> = ({
                 key={product.id}
                 product={product}
                 exchangeRate={exchangeRate}
+                showBsPrice={showBsPrice}
                 onAddToCart={onAddToCart}
                 onViewDetails={onSelectProduct}
               />

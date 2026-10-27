@@ -35,6 +35,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   if (!isOpen) return null;
 
+  const showBsPrice = siteContent?.show_bs_price ?? true;
   const exchangeRate = siteContent?.exchange_rate || 45;
   const totalAmount = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
@@ -51,12 +52,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     };
     const payMethodName = payMethodsObj[formData.payMethod] || formData.payMethod;
 
-    // Build cart items detailed text with both USD and Bs.
+    // Build cart items detailed text
     const itemsText = cartItems.map(item => {
       const productPriceUsd = item.product.price / 1000;
       const subtotalPriceUsd = productPriceUsd * item.quantity;
       const itemSubtotalVes = formatVES(item.product.price * item.quantity, exchangeRate);
-      return `• ${item.product.name} (x${item.quantity}) - $${subtotalPriceUsd.toFixed(2)} USD / ${itemSubtotalVes}`;
+      if (showBsPrice) {
+        return `• ${item.product.name} (x${item.quantity}) - $${subtotalPriceUsd.toFixed(2)} USD / ${itemSubtotalVes}`;
+      }
+      return `• ${item.product.name} (x${item.quantity}) - $${subtotalPriceUsd.toFixed(2)} USD`;
     }).join('\n');
 
     const totalAmountUsd = totalAmount / 1000;
@@ -78,23 +82,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           customer_name: formData.name,
           customer_phone: formData.phone,
           customer_address: formData.address || 'No especificada',
-          notes: `Método de pago: ${payMethodName}. Tasa: Bs. ${exchangeRate}. Email: ${formData.email || 'N/A'}`
+          notes: `Método de pago: ${payMethodName}. Envío: Por coordinar. ${showBsPrice ? `Tasa: Bs. ${exchangeRate}.` : ''} Email: ${formData.email || 'N/A'}`
         });
       } catch (err) {
         console.warn('Error saving order to Supabase:', err);
       }
     }
 
-    // Build gorgeous message with dual currency
+    // Build order message for WhatsApp
     const message = `🦷 *NUEVO PEDIDO - DENTALMATVV* 🦷\n\n` +
       `👋 Hola, me gustaría confirmar mi pedido:\n\n` +
       `👤 *Cliente:* ${formData.name}\n` +
       `📞 *Teléfono:* ${formData.phone}\n` +
       `✉️ *Email:* ${formData.email || 'No especificado'}\n` +
-      `📍 *Ubicación de entrega:* ${formData.address || 'A convenir'}\n\n` +
+      `📍 *Ubicación de entrega:* ${formData.address || 'A convenir'}\n` +
+      `🚚 *Envío:* Por coordinar\n\n` +
       `🛍️ *Detalle del Pedido:*\n${itemsText}\n\n` +
       `💵 *Total en USD:* $${totalAmountUsd.toFixed(2)} USD\n` +
-      `🇻🇪 *Total en Bolívares:* ${totalAmountVes}\n` +
+      (showBsPrice ? `🇻🇪 *Total en Bolívares:* ${totalAmountVes}\n` : '') +
       `💳 *Método de Pago Seleccionado:* ${payMethodName}\n\n` +
       `🙏 Quedo atento/a para coordinar la entrega y el pago.`;
 
@@ -200,9 +205,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         <span className="text-xs font-black text-slate-900">
                           {formatUSD(item.product.price)}
                         </span>
-                        <span className="text-[10px] font-extrabold text-amber-500 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                          {formatVES(item.product.price, exchangeRate)}
-                        </span>
+                        {showBsPrice && (
+                          <span className="text-[10px] font-extrabold text-amber-500 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                            {formatVES(item.product.price, exchangeRate)}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -313,7 +320,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         <ArrowRight className="w-4 h-4" />
                       </div>
                       <span className="text-[11px] text-cyan-200 font-medium">
-                        {formatUSD(totalAmount)} • {formatVES(totalAmount, exchangeRate)}
+                        {formatUSD(totalAmount)} {showBsPrice && `• ${formatVES(totalAmount, exchangeRate)}`}
                       </span>
                     </button>
                   </form>
@@ -329,17 +336,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span className="font-semibold text-slate-700">{formatUSD(totalAmount)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-500">
-                  <span>Subtotal en Bolívares</span>
-                  <span className="font-bold text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
+                  <span>Envío</span>
+                  <span className="font-semibold text-slate-700">Por coordinar</span>
                 </div>
+                {showBsPrice && (
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>Subtotal en Bolívares</span>
+                    <span className="font-bold text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-baseline pt-2 border-t border-slate-200/80">
                   <div>
                     <span className="text-xs font-extrabold text-slate-800 block">Total a Pagar</span>
-                    <span className="text-[10px] text-slate-400">Total en divisas y moneda nacional</span>
+                    <span className="text-[10px] text-slate-400">
+                      {showBsPrice ? 'Total en divisas y moneda nacional' : 'Total en divisas ($)'}
+                    </span>
                   </div>
                   <div className="text-right">
                     <div className="text-base font-black text-[#0F2C59]">{formatUSD(totalAmount)}</div>
-                    <div className="text-xs font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</div>
+                    {showBsPrice && (
+                      <div className="text-xs font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -367,10 +384,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span className="text-slate-500">Total en Dólares ($):</span>
                 <span className="font-black text-slate-800">{formatUSD(totalAmount)}</span>
               </div>
-              <div className="flex justify-between items-baseline">
-                <span className="text-slate-500">Equivalente en Bs.:</span>
-                <span className="font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
-              </div>
+              {showBsPrice && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-slate-500">Equivalente en Bs.:</span>
+                  <span className="font-black text-amber-500">{formatVES(totalAmount, exchangeRate)}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-1 border-t border-slate-100">
                 <span className="text-slate-500">Forma de pago:</span>
                 <span className="font-semibold text-blue-600">
@@ -381,6 +400,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </span>
               </div>
             </div>
+
 
             <button
               onClick={resetFlow}

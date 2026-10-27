@@ -7,6 +7,7 @@ import { formatUSD, formatVES } from '../lib/currency';
 interface ProductCardProps {
   product: Product;
   exchangeRate?: number;
+  showBsPrice?: boolean;
   onAddToCart: (product: Product) => void;
   onViewDetails?: (product: Product) => void;
 }
@@ -14,6 +15,7 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ 
   product, 
   exchangeRate = 45, 
+  showBsPrice = true,
   onAddToCart, 
   onViewDetails 
 }) => {
@@ -29,12 +31,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     >
       {/* Off/Offer Badges or Trend Badges */}
       <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-10 flex flex-col gap-1 items-start">
-        {product.originalPrice && (
+        {product.availability === 'agotado' && (
+          <span id={`badge-agotado-${product.id}`} className="bg-rose-600 text-white font-extrabold text-[9px] sm:text-[11px] px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm">
+            Agotado
+          </span>
+        )}
+        {product.originalPrice && product.availability !== 'agotado' && (
           <span id={`badge-off-${product.id}`} className="bg-red-500 text-white font-bold text-[9px] sm:text-[11px] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-wider shadow-sm">
             -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
           </span>
         )}
-        {product.isTrending && (
+        {product.isTrending && product.availability !== 'agotado' && (
           <span id={`badge-trend-${product.id}`} className="bg-cyan-500 text-white font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full uppercase tracking-widest shadow-sm">
             Top
           </span>
@@ -68,16 +75,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         className="w-full aspect-square rounded-xl bg-slate-50/70 mb-2 sm:mb-4 flex items-center justify-center p-2 sm:p-3 overflow-hidden relative cursor-pointer"
         onClick={() => onViewDetails?.(product)}
       >
-        <div className={`w-28 h-28 sm:w-40 sm:h-40 transition-transform duration-500 ease-out ${isHovered ? 'scale-105 sm:scale-110 rotate-1' : 'scale-100'}`}>
+        <div className={`w-28 h-28 sm:w-40 sm:h-40 transition-transform duration-500 ease-out ${isHovered && product.availability !== 'agotado' ? 'scale-105 sm:scale-110 rotate-1' : 'scale-100'} ${product.availability === 'agotado' ? 'opacity-60 grayscale-[30%]' : ''}`}>
           <ProductSVG type={product.image} />
         </div>
+
+        {/* Agotado Image Badge / Overlay Tab */}
+        {product.availability === 'agotado' && (
+          <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[1.5px] flex items-center justify-center z-10 pointer-events-none">
+            <span className="bg-rose-600 text-white text-xs sm:text-sm font-black px-4 py-1.5 rounded-xl uppercase tracking-wider shadow-lg border border-rose-400/50 transform -rotate-3">
+              AGOTADO
+            </span>
+          </div>
+        )}
         
         {/* Quick view overlay (desktop) */}
-        <div className="hidden sm:flex absolute inset-0 bg-blue-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-end justify-center pb-3">
-          <span className="text-[12px] font-semibold text-blue-600 bg-white/95 px-3 py-1.5 rounded-full shadow-sm border border-blue-50">
-            Vista rápida
-          </span>
-        </div>
+        {product.availability !== 'agotado' && (
+          <div className="hidden sm:flex absolute inset-0 bg-blue-900/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-end justify-center pb-3">
+            <span className="text-[12px] font-semibold text-blue-600 bg-white/95 px-3 py-1.5 rounded-full shadow-sm border border-blue-50">
+              Vista rápida
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Product Category */}
@@ -119,19 +137,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100/80 flex items-center justify-between gap-1">
         <div className="flex flex-col min-w-0">
           {product.originalPrice && (
-            <div className="flex items-center gap-1 text-[9px] sm:text-[10px] text-slate-400 line-through truncate font-medium">
+            <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] text-slate-400 line-through truncate font-medium">
               <span>{formatUSD(product.originalPrice)}</span>
-              <span>•</span>
-              <span>{formatVES(product.originalPrice, exchangeRate)}</span>
+              {showBsPrice && <span>{formatVES(product.originalPrice, exchangeRate)}</span>}
             </div>
           )}
           <div className="flex flex-col">
             <span id={`price-${product.id}`} className="text-xs sm:text-base font-black text-[#0F2C59] tracking-tight truncate leading-tight">
               {formatUSD(product.price)}
             </span>
-            <span className="text-[11px] sm:text-xs font-extrabold text-amber-500 tracking-tight truncate mt-0.5">
-              {formatVES(product.price, exchangeRate)}
-            </span>
+            {showBsPrice && (
+              <span className="text-[11px] sm:text-xs font-extrabold text-amber-500 tracking-tight truncate mt-0.5">
+                {formatVES(product.price, exchangeRate)}
+              </span>
+            )}
           </div>
         </div>
 
@@ -139,10 +158,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           id={`btn-add-cart-${product.id}`}
           onClick={(e) => {
             e.stopPropagation();
-            onAddToCart(product);
+            if (product.availability !== 'agotado') {
+              onAddToCart(product);
+            }
           }}
-          className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white p-2 sm:p-3 rounded-xl transition-all duration-200 shadow-md shadow-blue-200 hover:shadow-blue-300 flex items-center justify-center cursor-pointer shrink-0"
-          aria-label="Agregar al carrito"
+          disabled={product.availability === 'agotado'}
+          className={`${
+            product.availability === 'agotado'
+              ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+              : 'bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-md shadow-blue-200 hover:shadow-blue-300 cursor-pointer'
+          } p-2 sm:p-3 rounded-xl transition-all duration-200 flex items-center justify-center shrink-0`}
+          title={product.availability === 'agotado' ? 'Producto agotado' : 'Agregar al carrito'}
+          aria-label={product.availability === 'agotado' ? 'Producto agotado' : 'Agregar al carrito'}
         >
           <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>

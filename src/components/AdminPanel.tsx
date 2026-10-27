@@ -102,7 +102,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     specs: '',
     isFeatured: false,
     isTrending: false,
-    availability: 'disponible' as 'disponible' | 'oferta' | 'bajo_pedido',
+    availability: 'disponible' as 'disponible' | 'oferta' | 'bajo_pedido' | 'agotado',
     rating: 5.0,
     reviewsCount: 10
   });
@@ -393,7 +393,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const updatedForm: SiteContent = {
       ...siteForm,
       exchange_rate: Number(newRate),
-      exchange_rate_label: newLabel || siteForm.exchange_rate_label || 'Tasa Oficial del Día (BCV)'
+      exchange_rate_label: newLabel || siteForm.exchange_rate_label || 'Tasa Oficial del Día (BCV)',
+      show_bs_price: siteForm.show_bs_price ?? true
     };
     setSiteForm(updatedForm);
     try {
@@ -406,6 +407,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       showFeedback('success', `¡Tasa del día actualizada a Bs. ${Number(newRate).toFixed(2)} por USD y aplicada a toda la tienda!`);
     } catch (err: any) {
       console.error('Error guardando tasa:', err);
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(updatedForm);
+      }
+      showFeedback('error', 'Error al guardar en Supabase: ' + (err?.message || 'Error'));
+    } finally {
+      setSavingContent(false);
+    }
+  };
+
+  const handleToggleBsPrice = async (enable: boolean) => {
+    setSavingContent(true);
+    const updatedForm: SiteContent = {
+      ...siteForm,
+      show_bs_price: enable
+    };
+    setSiteForm(updatedForm);
+    try {
+      if (isSupabaseConfigured()) {
+        await saveSiteContentToDB(updatedForm);
+      }
+      if (onSiteContentUpdated) {
+        onSiteContentUpdated(updatedForm);
+      }
+      showFeedback(
+        'success',
+        enable
+          ? '✓ Precios en Bolívares (Bs.) ACTIVADOS en toda la tienda.'
+          : '✕ Precios en Bolívares DESACTIVADOS. Ahora la tienda muestra solo precios en Dólares ($).'
+      );
+    } catch (err: any) {
+      console.error('Error actualizando visibilidad de precios en Bs.:', err);
       if (onSiteContentUpdated) {
         onSiteContentUpdated(updatedForm);
       }
@@ -620,6 +652,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </span>
                         
                         <div className="flex items-center gap-1">
+                          {product.availability === 'agotado' && (
+                            <span className="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-rose-200">
+                              Agotado
+                            </span>
+                          )}
+                          {product.availability === 'bajo_pedido' && (
+                            <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-amber-200">
+                              Bajo Pedido
+                            </span>
+                          )}
                           {product.isFeatured && (
                             <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-0.5">
                               <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
@@ -826,6 +868,55 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <span className="text-xl md:text-2xl font-black text-white">
                       Bs. {Number(siteForm.exchange_rate || 45).toFixed(2)}
                     </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CONTROL DE ACTIVAR / DESACTIVAR PRECIOS EN BS */}
+              <div className="bg-white/95 backdrop-blur-2xl rounded-3xl p-6 md:p-7 border-2 border-slate-200/90 shadow-md space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-slate-800 uppercase tracking-wide">
+                        Visibilidad de Precios en Bolívares (Bs.)
+                      </span>
+                      <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
+                        siteForm.show_bs_price !== false
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : 'bg-slate-200 text-slate-700 border-slate-300'
+                      }`}>
+                        {siteForm.show_bs_price !== false ? '● ACTIVO (Muestra Bs. y $)' : '○ APAGADO (Solo $)'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 max-w-xl">
+                      Enciende o apaga la visualización del precio en Bolívares (Bs.) en toda la tienda (catálogo, tarjetas, modal y carrito).
+                    </p>
+                  </div>
+
+                  {/* Toggle buttons */}
+                  <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBsPrice(true)}
+                      className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm ${
+                        siteForm.show_bs_price !== false
+                          ? 'bg-emerald-600 text-white shadow-emerald-600/30 ring-2 ring-emerald-400'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      <span>✓ Encender precios en Bs.</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBsPrice(false)}
+                      className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm ${
+                        siteForm.show_bs_price === false
+                          ? 'bg-blue-600 text-white shadow-blue-600/30 ring-2 ring-blue-400'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      <span>✕ Desactivar Bs. (Solo $)</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1656,6 +1747,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     <option value="disponible">En Stock / Disponible Inmediato</option>
                     <option value="oferta">En Oferta Especial</option>
                     <option value="bajo_pedido">Bajo Pedido</option>
+                    <option value="agotado">Agotado (Sin Stock)</option>
                   </select>
                 </div>
               </div>

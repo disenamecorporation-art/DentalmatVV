@@ -116,7 +116,14 @@ export async function fetchSiteContentFromDB(): Promise<SiteContent> {
         .eq('id', 'main')
         .single();
       if (!error && data && data.content) {
-        return { ...DEFAULT_SITE_CONTENT, ...data.content };
+        const merged = { ...DEFAULT_SITE_CONTENT, ...data.content };
+        if (!merged.footer_address || !merged.footer_address.includes('J508910818')) {
+          merged.footer_address = "Turmero, Aragua - RIF J508910818";
+        }
+        if (merged.show_bs_price === undefined) {
+          merged.show_bs_price = true;
+        }
+        return merged;
       }
     } catch (err) {
       console.warn('Error fetching site content from Supabase:', err);

@@ -228,6 +228,7 @@ export default function App() {
             products={products}
             categories={categories}
             exchangeRate={siteContent.exchange_rate}
+            showBsPrice={siteContent.show_bs_price ?? true}
             onAddToCart={handleAddToCart}
             onSelectProduct={setSelectedProduct}
             searchFilter={searchFilter}
@@ -266,13 +267,22 @@ export default function App() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Left side: Vector rendering */}
-            <div className="w-full md:w-1/2 aspect-square bg-slate-50 rounded-2xl p-4 flex items-center justify-center border border-slate-100 relative">
-              <div className="w-48 h-48">
+            {/* Left side: Vector rendering & Agotado overlay */}
+            <div className="w-full md:w-1/2 aspect-square bg-slate-50 rounded-2xl p-4 flex items-center justify-center border border-slate-100 relative overflow-hidden">
+              <div className={`w-48 h-48 ${selectedProduct.availability === 'agotado' ? 'opacity-60 grayscale-[30%]' : ''}`}>
                 <ProductSVG type={selectedProduct.image} />
               </div>
+
+              {/* Agotado Tab Ribbon on Image */}
+              {selectedProduct.availability === 'agotado' && (
+                <div className="absolute inset-0 bg-slate-900/35 backdrop-blur-[1.5px] rounded-2xl flex items-center justify-center z-10 pointer-events-none">
+                  <span className="bg-rose-600 text-white text-sm sm:text-base font-black px-4 py-2 rounded-xl uppercase tracking-wider shadow-xl border border-rose-400/50 transform -rotate-3">
+                    AGOTADO
+                  </span>
+                </div>
+              )}
               
-              {selectedProduct.originalPrice && (
+              {selectedProduct.originalPrice && selectedProduct.availability !== 'agotado' && (
                 <span className="absolute top-4 left-4 bg-red-500 text-white font-bold text-xs px-2.5 py-1 rounded-full uppercase">
                   Oferta Especial
                 </span>
@@ -282,9 +292,22 @@ export default function App() {
             {/* Right side: Information and interactive purchase */}
             <div className="w-full md:w-1/2 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
-                <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wider">
-                  {selectedProduct.category}
-                </span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-extrabold text-blue-600 bg-blue-50 px-2.5 py-1 rounded uppercase tracking-wider">
+                    {selectedProduct.category}
+                  </span>
+                  {selectedProduct.availability === 'agotado' && (
+                    <span className="text-[10px] font-extrabold text-white bg-rose-600 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                      Agotado
+                    </span>
+                  )}
+                  {selectedProduct.availability === 'bajo_pedido' && (
+                    <span className="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      Bajo Pedido
+                    </span>
+                  )}
+                </div>
+
                 <h3 className="text-xl font-bold text-slate-900 leading-tight">
                   {selectedProduct.name}
                 </h3>
@@ -311,11 +334,13 @@ export default function App() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-base sm:text-lg font-black text-amber-500 bg-amber-50/80 px-3 py-1 rounded-xl border border-amber-200 shadow-xs flex items-center">
-                      {formatVES(selectedProduct.price, siteContent.exchange_rate)}
-                    </span>
-                  </div>
+                  {siteContent.show_bs_price !== false && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-base sm:text-lg font-black text-amber-500 bg-amber-50/80 px-3 py-1 rounded-xl border border-amber-200 shadow-xs flex items-center">
+                        {formatVES(selectedProduct.price, siteContent.exchange_rate)}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-xs text-slate-600 leading-relaxed pt-2">
@@ -337,16 +362,23 @@ export default function App() {
               <div className="pt-4 flex flex-col sm:flex-row gap-2.5">
                 <button
                   onClick={() => {
-                    handleAddToCart(selectedProduct);
-                    setSelectedProduct(null);
+                    if (selectedProduct.availability !== 'agotado') {
+                      handleAddToCart(selectedProduct);
+                      setSelectedProduct(null);
+                    }
                   }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
+                  disabled={selectedProduct.availability === 'agotado'}
+                  className={`flex-1 ${
+                    selectedProduct.availability === 'agotado'
+                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-200 cursor-pointer'
+                  } font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm`}
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  <span>Añadir al Carrito</span>
+                  <span>{selectedProduct.availability === 'agotado' ? 'Producto Agotado' : 'Añadir al Carrito'}</span>
                 </button>
                 <a
-                  href={`https://wa.me/584220583339?text=${encodeURIComponent(`Hola DentalMatVV! Deseo información y disponibilidad de: *${selectedProduct.name}* (Precio: ${formatUSD(selectedProduct.price)} / ${formatVES(selectedProduct.price, siteContent.exchange_rate)})`)}`}
+                  href={`https://wa.me/584220583339?text=${encodeURIComponent(`Hola DentalMatVV! Deseo información y disponibilidad de: *${selectedProduct.name}* (Precio: ${formatUSD(selectedProduct.price)}${siteContent.show_bs_price !== false ? ` / ${formatVES(selectedProduct.price, siteContent.exchange_rate)}` : ''})`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm"
@@ -398,7 +430,7 @@ export default function App() {
                 <li className="flex items-start gap-2.5">
                   <MapPin className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                   <span className="leading-snug">
-                    {siteContent.footer_address}
+                    {siteContent.footer_address || "Turmero, Aragua - RIF J508910818"}
                   </span>
                 </li>
                 {siteContent.footer_whatsapp && (
